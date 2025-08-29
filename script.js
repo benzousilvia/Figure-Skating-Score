@@ -327,7 +327,7 @@ function addJump(){
 function renderBufferedElement(){
   elementDisplay.html("");
   if (buffer[0].name === null && buffer[0].lod == 0){
-    elementDisplay.append("Element");
+    elementDisplay.append("要素");
   }
 
   for (var i = 0; i < buffer.length; i++){
@@ -436,7 +436,7 @@ function clearEntry() {
   $(".addElement").prop("disabled", true);
   $(".addJump").prop("disabled", true);
   $(".setEdge").prop("disabled", true);
-  $("#elem-disp").html("Element");
+  $("#elem-disp").html("要素");
   $("#goeDisplay").html("GOE");
   $(".setSpinV").prop("disabled", false);
 

@@ -28,8 +28,8 @@
 <body>
 
   <div class="alert alert-warning alert-dismissible fade show" role="alert">
-    <strong>FSCalc is now SkateCalc!</strong> You can find us at <a href="https://www.skatecalc.com">www.skatecalc.com</a>
-    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <strong>FSCalcはSkateCalcになりました！</strong> You can find us at <a href="https://www.skatecalc.com">www.skatecalc.com</a>
+    <button type="button" class="close" data-dismiss="alert" aria-label="閉じる">
       <span aria-hidden="true">&times;</span>
     </button>
   </div>
@@ -43,21 +43,21 @@
         <!-- <h5>Selected element</h5> -->
         <div id="elem-disp-div">
           <!-- <p id="elem-disp"><span id=goeDisplay>test</span></p>  -->
-          <span id="elem-disp">Element</span><span id="goeDisplay">GOE</span>
+          <span id="elem-disp">要素</span><span id="goeDisplay">GOE</span>
         </div>
         <nav>
           <div class="nav nav-tabs" id="ele-sel-nav-tab" role="tablist">
-            <a class="nav-item nav-link active" id="nav-jmp-tab" data-toggle="tab" href="#nav-jmp" role="tab" aria-controls="nav-jmp" aria-selected="true">Jumps</a>
-            <a class="nav-item nav-link" id="nav-sp-tab" data-toggle="tab" href="#nav-sp" role="tab" aria-controls="nav-sp" aria-selected="false">Spins</a>
-            <a class="nav-item nav-link" id="nav-seq-tab" data-toggle="tab" href="#nav-seq" role="tab" aria-controls="nav-seq" aria-selected="false">Sequences</a>
+            <a class="nav-item nav-link active" id="nav-jmp-tab" data-toggle="tab" href="#nav-jmp" role="tab" aria-controls="nav-jmp" aria-selected="true">ジャンプ</a>
+            <a class="nav-item nav-link" id="nav-sp-tab" data-toggle="tab" href="#nav-sp" role="tab" aria-controls="nav-sp" aria-selected="false">スピン</a>
+            <a class="nav-item nav-link" id="nav-seq-tab" data-toggle="tab" href="#nav-seq" role="tab" aria-controls="nav-seq" aria-selected="false">シークエンス</a>
             <a class="nav-item nav-link" id="nav-pcs-tab" data-toggle="tab" href="#nav-pcs" role="tab" aria-controls="nav-pcs" aria-selected="false">PCS</a>
 
           </div>
         </nav>
         <div class="tab-content" id="nav-tabContent">
           <div class="tab-pane fade show active nav-jmp" id="nav-jmp" role="tabpanel" aria-labelledby="nav-jmp-tab">
-            <h3>Add Jump</h3>
-            <h6>Type</h6>
+            <h3>ジャンプを追加</h3>
+            <h6>種類</h6>
             <div class="btn-group setName">
               <button type="button" class="btn btn-outline-primary">A</button>
               <button type="button" class="btn btn-outline-primary">T</button>
@@ -68,7 +68,7 @@
               <button type="button" class="btn btn-outline-primary">Eu</button>
             </div>
 
-            <h6>Rotations</h6>
+            <h6>回転数</h6>
             <div class="btn-group setLOD">
               <button type="button" class="btn btn-outline-primary">0</button>
               <button type="button" class="btn btn-outline-primary">1</button>
@@ -77,7 +77,7 @@
               <button type="button" class="btn btn-outline-primary">4</button>
             </div>
 
-            <h6>Info</h6>
+            <h6>詳細</h6>
             <div class="btn-group">
               <button type="button" class="btn btn-outline-primary addJump">+</button>
               <button type="button" class="btn btn-outline-primary setUr">&lt;</button>
@@ -116,14 +116,14 @@
 
             </div>
             <div>
-              <button type="button" class="btn btn-outline-danger clearEntry">Clear Entry</button>
-              <button type="button" class="btn btn-outline-success addElement">Add Element</button>
+              <button type="button" class="btn btn-outline-danger clearEntry">入力をクリア</button>
+              <button type="button" class="btn btn-outline-success addElement">要素を追加</button>
             </div>
 
           </div>
           <div class="tab-pane fade nav-sp" id="nav-sp" role="tabpanel" aria-labelledby="nav-sp-tab">
-            <h3>Add Spin</h3>
-            <h6>Type</h6>
+            <h3>スピンを追加</h3>
+            <h6>種類</h6>
             <div class="btn-group setName">
               <button type="button" class="btn btn-outline-dark">USp</button>
               <button type="button" class="btn btn-outline-dark">LSp</button>
@@ -132,7 +132,7 @@
               <button type="button" class="btn btn-outline-dark">CoSp</button>
 
             </div>
-            <h6>Level</h6>
+            <h6>レベル</h6>
             <div class="btn-group setLOD">
               <button type="button" class="btn btn-outline-dark">0</button>
               <button type="button" class="btn btn-outline-dark">B</button>
@@ -142,7 +142,7 @@
               <button type="button" class="btn btn-outline-dark">4</button>
             </div>
 
-            <h6>Info</h6>
+            <h6>詳細</h6>
             <div class="btn-group">
               <button type="button" class="btn btn-outline-dark setFly">F</button>
               <button type="button" class="btn btn-outline-dark setCOF">C</button>
@@ -178,21 +178,21 @@
 
             </div>
             <div>
-              <button type="button" class="btn btn-outline-danger clearEntry">Clear Entry</button>
-              <button type="button" class="btn btn-outline-success addElement">Add Element</button>
+              <button type="button" class="btn btn-outline-danger clearEntry">入力をクリア</button>
+              <button type="button" class="btn btn-outline-success addElement">要素を追加</button>
             </div>
           </div>
 
           <div class="tab-pane fade nav-seq" id="nav-seq" role="tabpanel" aria-labelledby="nav-seq-tab">
-            <h3>Add Sequence</h3>
+            <h3>シークエンスを追加</h3>
 
-            <h6>Type</h6>
+            <h6>種類</h6>
             <div class="btn-group setName">
               <button type="button" class="btn btn-outline-info">StSq</button>
               <button type="button" class="btn btn-outline-info">ChSq</button>
             </div>
 
-            <h6>Level</h6>
+            <h6>レベル</h6>
             <div class="btn-group setLOD">
               <button type="button" class="btn btn-outline-info">0</button>
               <button type="button" class="btn btn-outline-info">B</button>
@@ -202,7 +202,7 @@
               <button type="button" class="btn btn-outline-info">4</button>
             </div>
 
-            <h6>Info</h6>
+            <h6>詳細</h6>
             <div class="btn-group">
               <button type="button" class="btn btn-outline-info setInvalid">*</button>
             </div>
@@ -234,27 +234,27 @@
 
             </div>
             <div>
-              <button type="button" class="btn btn-outline-danger clearEntry">Clear Entry</button>
-              <button type="button" class="btn btn-outline-success addElement">Add Element</button>
+              <button type="button" class="btn btn-outline-danger clearEntry">入力をクリア</button>
+              <button type="button" class="btn btn-outline-success addElement">要素を追加</button>
             </div>
 
           </div>
 
           <div class="tab-pane fade nav-pcs" id="nav-pcs" role="tabpanel" aria-labelledby="nav-pcs-tab">
-            <h3>Program Component Score</h3>
-            <p id="factor"><span>Factor: </span><span><input type="number" id="pcs-factor-box" class="pcs" value="1.67"></span></p>
+            <h3>PCS</h3>
+            <p id="factor"><span>係数: </span><span><input type="number" id="pcs-factor-box" class="pcs" value="1.67"></span></p>
 
             <!-- <p><label for="pcs-tr">Transitions</label>&nbsp;&nbsp;<input type="number" value ="0.00" class="pcs" id="pcs-tr-box" min="0" max="10" step="0.25"></p>
             <p>&nbsp;&nbsp;<input type="range" class="custom-range pcs-slider" value ="0.00" min="0" max="10" step="0.25" id="pcs-tr-slider"></p>
  -->
 
-            <p><label for="pcs-co">Composition</label>&nbsp;&nbsp;<input type="number" value ="0.00" class="pcs" id="pcs-co-box" min="0" max="10" step="0.25"></p>
+            <p><label for="pcs-co">構成</label>&nbsp;&nbsp;<input type="number" value ="0.00" class="pcs" id="pcs-co-box" min="0" max="10" step="0.25"></p>
             <p>&nbsp;&nbsp;<input type="range" class="custom-range pcs-slider" value ="0.00" min="0" max="10" step="0.25" id="pcs-co-slider"></p>
             
-            <p><label for="pcs-pr">Presentation</label>&nbsp;&nbsp;<input type="number" value ="0.00" class="pcs" id="pcs-pr-box" min="0" max="10" step="0.25"></p>
+            <p><label for="pcs-pr">表現</label>&nbsp;&nbsp;<input type="number" value ="0.00" class="pcs" id="pcs-pr-box" min="0" max="10" step="0.25"></p>
             <p>&nbsp;&nbsp;<input type="range" class="custom-range pcs-slider" value ="0.00" min="0" max="10" step="0.25" id="pcs-pr-slider"></p>
 
-            <p><label for="pcs-ss">Skating Skills</label>&nbsp;&nbsp;<input type="number" value ="0.00" class="pcs" id="pcs-ss-box" min="0" max="10" step="0.25"></p>
+            <p><label for="pcs-ss">スケート技術</label>&nbsp;&nbsp;<input type="number" value ="0.00" class="pcs" id="pcs-ss-box" min="0" max="10" step="0.25"></p>
             <p>&nbsp;&nbsp;<input type="range" class="custom-range pcs-slider" value ="0.00" min="0" max="10" step="0.25" id="pcs-ss-slider"></p>
 
             <!-- <p><label for="pcs-in">Interpretation of the Music</label>&nbsp;&nbsp;<input type="number" id="pcs-in-box" value ="0.00" class="pcs" min="0" max="10" step="0.25"></p>
@@ -270,11 +270,11 @@
           <thead>
             <tr>
               <th scope="col">#</th>
-              <th scope="col">Executed Element</th>
-              <th scope="col">Base Value</th>
+              <th scope="col">実行要素</th>
+              <th scope="col">基礎点</th>
               <th scope="col">GOE</th>
-              <th scope="col">GOE Value</th>
-              <th scope="col">Score</th>
+              <th scope="col">GOE値</th>
+              <th scope="col">得点</th>
               <th scope="col"></th>
             </tr>
           </thead>
@@ -290,9 +290,9 @@
           </tr> -->
         </tbody>
       </table>
-      <p id="tes-box"><span>Technical Element Score: </span><span id="tes">0.00</span></p>
-      <p id="pcs-box"><span>Program Component Score: </span><span id="pcs">0.00</span></p>
-      <p id="tss-box"><span>Total Segment Score: </span><span id="tss">0.00</span></p>
+      <p id="tes-box"><span>TES: </span><span id="tes">0.00</span></p>
+      <p id="pcs-box"><span>PCS: </span><span id="pcs">0.00</span></p>
+      <p id="tss-box"><span>合計得点: </span><span id="tss">0.00</span></p>
     </div>
   </div>
 
