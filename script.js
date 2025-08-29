@@ -28,7 +28,18 @@ var pcsTotal = 0.0;
 var tss = 0.0;
 var deduct = 0.0;
 
-window.onload = function(){
+// 非同期初期化対応
+window.addEventListener('DOMContentLoaded', async function() {
+  try {
+    await initSOV();
+    initApp();
+  } catch (error) {
+    console.error('Failed to initialize SOV data:', error);
+    alert('データの読み込みに失敗しました。ページを再読み込みしてください。');
+  }
+});
+
+function initApp(){
   elementDisplay = $("#elem-disp");
   $(".setName button").click(setName);
   $(".setLOD button").click(setLOD);
@@ -62,6 +73,28 @@ window.onload = function(){
   $("#pcs-in-box").on("change keyup paste click", updateIN)
   $("#pcs-in-slider").on("change input click", updateIN)
   $("#pcs-factor-box").on("change keyup paste click", updateFactor)
+}
+
+// 動的回転数制御関数
+function updateRotationButtons(jumpType) {
+  if (!jumpType || !window.getAvailableRotationsFor) return;
+  
+  const availableRotations = getAvailableRotationsFor(jumpType);
+  const rotationButtons = $("#nav-jmp .setLOD button");
+  
+  // すべて無効化
+  rotationButtons.prop("disabled", true);
+  
+  // 利用可能な回転数のボタンを有効化
+  rotationButtons.each(function(index) {
+    const rotation = parseInt($(this).text());
+    if (availableRotations.includes(rotation)) {
+      $(this).prop("disabled", false);
+    }
+  });
+  
+  // 0回転は常に有効
+  rotationButtons.eq(0).prop("disabled", false);
 }
 
 function updateTSS(){
@@ -173,10 +206,15 @@ function setType(node){
   $(".addElement").prop("disabled", false);
   $(".addJump").prop("disabled", false);
   $(".setEdge").prop("disabled", true);
+  
   if ($(node).parents(".nav-jmp").length){
     buffer[buffer.length - 1].type = "jump";
     $("#nav-sp-tab").addClass("disabled");
     $("#nav-seq-tab").addClass("disabled");
+    
+    // ジャンプの種類に応じて動的に回転数ボタンを制御
+    const jumpType = buffer[buffer.length - 1].name;
+    updateRotationButtons(jumpType);
   }
   else if ($(node).parents(".nav-sp").length){
     buffer[buffer.length - 1].type = "spin";
@@ -188,16 +226,14 @@ function setType(node){
     $("#nav-jmp-tab").addClass("disabled");
     $("#nav-sp-tab").addClass("disabled");
   }
+  
   if (buffer[buffer.length - 1].name == "ChSq"){
     $("#nav-seq .setLOD button").prop("disabled", true);
     $("#nav-seq .setLOD button:eq(0)").prop("disabled", false);
     $("#nav-seq .setLOD button:eq(2)").prop("disabled", false);
   }
-  if (buffer[buffer.length - 1].name == "Eu"){
-    $("#nav-jmp .setLOD button").prop("disabled", true);
-    $("#nav-jmp .setLOD button:eq(0)").prop("disabled", false);
-    $("#nav-jmp .setLOD button:eq(1)").prop("disabled", false);
-  }
+  
+  // 旧来のEu固定制御は削除し、動的制御に統合済み
 
   if (buffer[buffer.length - 1].name === "ChSq" || buffer[buffer.length - 1].name === "Eu"){
     if(buffer[buffer.length - 1].lod != "0" && buffer[buffer.length - 1].lod != "1" ){
