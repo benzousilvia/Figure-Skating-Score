@@ -17,6 +17,7 @@ div {
 body {
   padding: 10px;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans JP', sans-serif;
+  background: #f8f9fa; /* 明るい背景で軽いカード感を強調 */
 }
 
 #goeDisplay{
@@ -99,4 +100,58 @@ h1 {
 img, table { 
   max-width: 100%; 
   height: auto; 
+}
+
+/* --- 新UIライクな見た目（Bootstrap4のまま） --- */
+/* タブ内全体をカード風に */
+.tab-content > .tab-pane {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(33,37,41,.08);
+  padding: 14px 14px 18px;
+  margin-top: 8px;
+}
+
+/* タブをピル風に簡易調整 */
+.nav-tabs .nav-link {
+  border-radius: 999px;
+  border: none;
+}
+.nav-tabs .nav-link.active {
+  background: #0d6efd;
+  color: #fff !important;
+}
+
+/* GOEスライダー用バッジの視認性 */
+.goe-sel .badge {
+  font-variant-numeric: tabular-nums;
+}
+
+/* スコア表をスクロールしやすく（ヘッダ固定） */
+.table-container {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(33,37,41,.08);
+  padding: 8px;
+  max-height: 60vh;
+  overflow: auto;
+}
+.table-container thead th {
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 1;
+}
+
+/* 余白の密度調整 */
+.goe-sel input[type="range"]{
+  margin-top: 6px;
+}
+
+/* 右カラムの合計カード風（既存の配置を崩さず） */
+#tes-box, #pcs-box, #tss-box{
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(33,37,41,.08);
+  padding: 8px 12px;
 }

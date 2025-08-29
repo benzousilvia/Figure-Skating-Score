@@ -1,298 +1,760 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="ja" data-bs-theme="light">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Figure Skating Score — 新UIプロトタイプ</title>
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    :root{
+      --brand: #0d6efd;
+    }
+    body{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans JP', sans-serif; }
+    .navbar-brand{ font-weight: 700; letter-spacing: 0.3px; }
+    .page{ padding: 16px 16px 64px; }
+    .card{ border-radius: 12px; }
+    .chip{ display:inline-flex; align-items:center; gap:.25rem; background:#f1f3f5; border-radius:999px; padding:.25rem .6rem; }
+    .chip .rm{ cursor:pointer; }
+    .goe-scale{ font-size:12px; display:flex; justify-content:space-between; color:#6c757d }
+    .sticky-col{ position: sticky; top: 12px; }
+    .table thead th{ position: sticky; top:0; background:var(--bs-body-bg); z-index:1; }
+    .handle{ cursor:grab; color:#adb5bd; }
+    .elem-preview{ min-height: 40px; border:1px dashed #dee2e6; border-radius: 8px; padding: .5rem .75rem; font-size:1.1rem; }
+    .score-pill{ font-variant-numeric: tabular-nums; }
+    .nav-pills .nav-link{ border-radius:999px; }
+    .btn-check + .btn{ border-radius: 999px; }
+    .section-title{ font-weight:600; font-size:1rem; color:#6c757d; }
+    /* 極小端末の詰め */
+    @media (max-width: 360px){ .btn-sm{ padding:.25rem .45rem; font-size:.8rem; } }
+  </style>
+  <script>
+    // 簡易モック: プレビュー更新のみ（実計算は既存script.jsに委ね）
+    document.addEventListener('DOMContentLoaded', () => {
+      const preview = document.getElementById('elemPreview');
+      const chips = document.getElementById('chips');
+      const goeValue = document.getElementById('goeValue');
+      const goeSlider = document.getElementById('goe');
+      // PCS スライダーと表示バッジ
+      const pcsCo = document.getElementById('pcs-co');
+      const pcsCoVal = document.getElementById('pcs-co-val');
+      const pcsPr = document.getElementById('pcs-pr');
+      const pcsPrVal = document.getElementById('pcs-pr-val');
+      const pcsSs = document.getElementById('pcs-ss');
+      const pcsSsVal = document.getElementById('pcs-ss-val');
 
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-2Y43BQ5433"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+      function updatePreview(){
+        const rot = document.querySelector('input[name="rot"]:checked')?.value || '0';
+        const type = document.querySelector('input[name="type"]:checked')?.value || '';
+        const flags = Array.from(document.querySelectorAll('input[name="flag"]:checked')).map(i=>i.value);
+        const rep = flags.includes('REP') ? '+REP' : '';
+        const suf = [flags.includes('e')?'e':'', flags.includes('UR')?'\u003c':'', flags.includes('DG')?'\u003c\u003c':'', flags.includes('*')?'*':''].join('');
+        const bonus = document.getElementById('bonus').checked ? ' x' : '';
+        const txt = (rot!=='0'?rot:'') + type + suf + (rep?rep:'') + bonus;
+        preview.textContent = txt || '要素';
+        chips.innerHTML = '';
+        if (rot!=='0') chips.insertAdjacentHTML('beforeend', `<span class="chip"><i class="bi bi-arrow-repeat"></i>${rot}回転</span>`);
+        if (type) chips.insertAdjacentHTML('beforeend', `<span class="chip"><i class="bi bi-circle"></i>${type}</span>`);
+        flags.forEach(f=> chips.insertAdjacentHTML('beforeend', `<span class="chip">${f}</span>`));
+        if (document.getElementById('spinV').checked) chips.insertAdjacentHTML('beforeend', `<span class="chip">V</span>`);
+        if (document.getElementById('bonus').checked) chips.insertAdjacentHTML('beforeend', `<span class="chip">x</span>`);
+      }
 
-  gtag('config', 'G-2Y43BQ5433');
-  gtag('config', 'UA-115566042-2');
-</script>
+      document.body.addEventListener('change', (e)=>{
+        if (e.target.matches('input[name="rot"], input[name="type"], input[name="flag"], #spinV, #bonus')){
+          updatePreview();
+        }
+        if (e.target === goeSlider){
+          goeValue.textContent = (goeSlider.value>0?'+':'') + goeSlider.value;
+        }
+      });
+      updatePreview();
+      goeValue.textContent = '+0';
 
-  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
-  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
-  <script type="module" src="script.js"></script>
-  <link rel="stylesheet" type="text/css" href="style.css">
-  <title>Figure Skating Score</title>
+      // PCS数値の初期表示と更新
+      const setBadge = (el, badge) => { if (el && badge) badge.textContent = Number(el.value).toFixed(2); };
+      setBadge(pcsCo, pcsCoVal);
+      setBadge(pcsPr, pcsPrVal);
+      setBadge(pcsSs, pcsSsVal);
+      [
+        [pcsCo, pcsCoVal],
+        [pcsPr, pcsPrVal],
+        [pcsSs, pcsSsVal]
+      ].forEach(([el, badge]) => {
+        if (!el || !badge) return;
+        el.addEventListener('input', () => setBadge(el, badge));
+      });
+    });
+  </script>
+  <!-- 既存アプリ接続時は、script.js/basevalues.jsへ差し替え可 -->
 </head>
 <body>
+  <!-- ヘッダ/ナビ -->
+  <nav class="navbar navbar-expand-md bg-body border-bottom sticky-top">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#"><i class="bi bi-snow"></i> Figure Skating Score</a>
+      <div class="d-flex align-items-center gap-2">
+        <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="offcanvas" data-bs-target="#help" aria-controls="help">
+          <i class="bi bi-question-circle"></i> ヘルプ
+        </button>
+      </div>
+    </div>
+  </nav>
 
+  <main class="page container-fluid">
+    <div class="row g-3">
+      <!-- 左: コンポーザ -->
+      <div class="col-12 col-lg-6">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <div class="section-title">要素コンポーザ</div>
+              <div class="small text-secondary">5回転はA無効・可用回転のみ表示</div>
+            </div>
 
-  <h1>Figure Skating Score</h1>
+            <!-- タブ: ジャンプ/スピン/シークエンス -->
+            <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="tab-jmp" data-bs-toggle="pill" data-bs-target="#pane-jmp" type="button" role="tab">ジャンプ</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-spin" data-bs-toggle="pill" data-bs-target="#pane-spin" type="button" role="tab">スピン</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-seq" data-bs-toggle="pill" data-bs-target="#pane-seq" type="button" role="tab">シークエンス</button>
+              </li>
+            </ul>
 
-  <div class="container-fluid m-0 p-0">
+            <div class="tab-content">
+              <!-- ジャンプ -->
+              <div class="tab-pane fade show active" id="pane-jmp" role="tabpanel">
+                <div class="row g-3">
+                  <div class="col-12">
+                    <div class="text-secondary small mb-1">回転数</div>
+                    <div class="btn-group" role="group" aria-label="rotations">
+                      <!-- 可用回転のみenabled（モック:全て有効） -->
+                      <input class="btn-check" type="radio" name="rot" id="rot0" value="0"><label class="btn btn-outline-primary" for="rot0">0</label>
+                      <input class="btn-check" type="radio" name="rot" id="rot1" value="1"><label class="btn btn-outline-primary" for="rot1">1</label>
+                      <input class="btn-check" type="radio" name="rot" id="rot2" value="2"><label class="btn btn-outline-primary" for="rot2">2</label>
+                      <input class="btn-check" type="radio" name="rot" id="rot3" value="3" checked><label class="btn btn-outline-primary" for="rot3">3</label>
+                      <input class="btn-check" type="radio" name="rot" id="rot4" value="4"><label class="btn btn-outline-primary" for="rot4">4</label>
+                      <input class="btn-check" type="radio" name="rot" id="rot5" value="5"><label class="btn btn-outline-primary" for="rot5">5</label>
+                    </div>
+                  </div>
+                  <div class="col-12">
+                    <div class="text-secondary small mb-1">種類</div>
+                    <div class="btn-group" role="group" aria-label="types">
+                      <input class="btn-check" type="radio" name="type" id="tA" value="A"><label class="btn btn-outline-primary" for="tA">A</label>
+                      <input class="btn-check" type="radio" name="type" id="tT" value="T" checked><label class="btn btn-outline-primary" for="tT">T</label>
+                      <input class="btn-check" type="radio" name="type" id="tS" value="S"><label class="btn btn-outline-primary" for="tS">S</label>
+                      <input class="btn-check" type="radio" name="type" id="tLo" value="Lo"><label class="btn btn-outline-primary" for="tLo">Lo</label>
+                      <input class="btn-check" type="radio" name="type" id="tF" value="F"><label class="btn btn-outline-primary" for="tF">F</label>
+                      <input class="btn-check" type="radio" name="type" id="tLz" value="Lz"><label class="btn btn-outline-primary" for="tLz">Lz</label>
+                      <input class="btn-check" type="radio" name="type" id="tEu" value="Eu"><label class="btn btn-outline-primary" for="tEu">Eu</label>
+                    </div>
+                  </div>
+                  <div class="col-12">
+                    <div class="text-secondary small mb-1">詳細</div>
+                    <div class="d-flex flex-wrap gap-2">
+                      <input class="btn-check" id="flagUR" type="checkbox" name="flag" value="UR"><label class="btn btn-outline-secondary btn-sm" for="flagUR">&lt;</label>
+                      <input class="btn-check" id="flagDG" type="checkbox" name="flag" value="DG"><label class="btn btn-outline-secondary btn-sm" for="flagDG">&lt;&lt;</label>
+                      <input class="btn-check" id="flagE"  type="checkbox" name="flag" value="e"><label class="btn btn-outline-secondary btn-sm" for="flagE">e</label>
+                      <input class="btn-check" id="flagREP" type="checkbox" name="flag" value="REP"><label class="btn btn-outline-secondary btn-sm" for="flagREP">+REP</label>
+                      <input class="btn-check" id="flagINV" type="checkbox" name="flag" value="*"><label class="btn btn-outline-secondary btn-sm" for="flagINV">*</label>
+                      <input class="btn-check" id="spinV" type="checkbox"><label class="btn btn-outline-secondary btn-sm" for="spinV">V</label>
+                      <div class="form-check form-switch ms-2">
+                        <input class="form-check-input" type="checkbox" role="switch" id="bonus">
+                        <label class="form-check-label" for="bonus">ボーナス(x)</label>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-12">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <div class="text-secondary small">GOE</div>
+                      <div class="badge text-bg-dark" id="goeValue">+0</div>
+                    </div>
+                    <input type="range" class="form-range" min="-5" max="5" step="1" value="0" id="goe">
+                    <div class="goe-scale">
+                      <span>-5</span><span>-3</span><span>-1</span><span>0</span><span>+1</span><span>+3</span><span>+5</span>
+                    </div>
+                  </div>
+                </div>
 
-    <div class="row">
-      <div class="col-md-6">
-        <!-- <h5>Selected element</h5> -->
-        <div id="elem-disp-div">
-          <!-- <p id="elem-disp"><span id=goeDisplay>test</span></p>  -->
-          <span id="elem-disp">要素</span><span id="goeDisplay">GOE</span>
+                <div class="mt-3 elem-preview d-flex align-items-center justify-content-between">
+                  <div id="elemPreview">要素</div>
+                  <div id="chips" class="d-flex flex-wrap gap-2"></div>
+                </div>
+
+                <div class="d-flex justify-content-between mt-3">
+                  <button class="btn btn-outline-danger" id="btn-clear-entry"><i class="bi bi-eraser"></i> 入力をクリア</button>
+                  <div class="btn-group">
+                    <button class="btn btn-outline-primary" id="btn-add-jump"><i class="bi bi-plus-lg"></i> ジャンプ追加</button>
+                    <button class="btn btn-primary" id="btn-add-element"><i class="bi bi-check2"></i> 要素を追加</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- スピン -->
+              <div class="tab-pane fade" id="pane-spin" role="tabpanel">
+                <div class="text-secondary small mb-1">スピン種類</div>
+                <div class="btn-group mb-2" role="group">
+                  <input class="btn-check" type="radio" name="sp" id="spUSp"><label class="btn btn-outline-info" for="spUSp">USp</label>
+                  <input class="btn-check" type="radio" name="sp" id="spLSp"><label class="btn btn-outline-info" for="spLSp">LSp</label>
+                  <input class="btn-check" type="radio" name="sp" id="spCSp"><label class="btn btn-outline-info" for="spCSp">CSp</label>
+                  <input class="btn-check" type="radio" name="sp" id="spSSp"><label class="btn btn-outline-info" for="spSSp">SSp</label>
+                  <input class="btn-check" type="radio" name="sp" id="spCoSp"><label class="btn btn-outline-info" for="spCoSp">CoSp</label>
+                </div>
+                <div class="text-secondary small mb-1">詳細</div>
+                <div class="d-flex flex-wrap gap-2 mb-2">
+                  <input class="btn-check" id="spF" type="checkbox"><label class="btn btn-outline-secondary btn-sm" for="spF">F</label>
+                  <input class="btn-check" id="spC" type="checkbox"><label class="btn btn-outline-secondary btn-sm" for="spC">C</label>
+                  <input class="btn-check" id="spV" type="checkbox"><label class="btn btn-outline-secondary btn-sm" for="spV">V</label>
+                  <input class="btn-check" id="spINV" type="checkbox"><label class="btn btn-outline-secondary btn-sm" for="spINV">*</label>
+                </div>
+                <div class="text-secondary small mb-1">レベル</div>
+                <div class="btn-group" role="group">
+                  <input class="btn-check" type="radio" name="lev" id="lev0"><label class="btn btn-outline-info" for="lev0">0</label>
+                  <input class="btn-check" type="radio" name="lev" id="levB"><label class="btn btn-outline-info" for="levB">B</label>
+                  <input class="btn-check" type="radio" name="lev" id="lev1"><label class="btn btn-outline-info" for="lev1">1</label>
+                  <input class="btn-check" type="radio" name="lev" id="lev2"><label class="btn btn-outline-info" for="lev2">2</label>
+                  <input class="btn-check" type="radio" name="lev" id="lev3"><label class="btn btn-outline-info" for="lev3">3</label>
+                  <input class="btn-check" type="radio" name="lev" id="lev4"><label class="btn btn-outline-info" for="lev4">4</label>
+                </div>
+                <div class="d-flex justify-content-between mt-3">
+                  <div></div>
+                  <div class="btn-group">
+                    <button class="btn btn-primary" id="btn-add-spin"><i class="bi bi-check2"></i> 要素を追加</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- シークエンス -->
+              <div class="tab-pane fade" id="pane-seq" role="tabpanel">
+                <div class="text-secondary small mb-1">種類</div>
+                <div class="btn-group mb-2" role="group">
+                  <input class="btn-check" type="radio" name="sq" id="sqStSq"><label class="btn btn-outline-success" for="sqStSq">StSq</label>
+                  <input class="btn-check" type="radio" name="sq" id="sqChSq"><label class="btn btn-outline-success" for="sqChSq">ChSq</label>
+                </div>
+                <div class="text-secondary small mb-1">レベル</div>
+                <div class="btn-group" role="group">
+                  <input class="btn-check" type="radio" name="sqlev" id="sq0"><label class="btn btn-outline-success" for="sq0">0</label>
+                  <input class="btn-check" type="radio" name="sqlev" id="sqB"><label class="btn btn-outline-success" for="sqB">B</label>
+                  <input class="btn-check" type="radio" name="sqlev" id="sq1"><label class="btn btn-outline-success" for="sq1">1</label>
+                  <input class="btn-check" type="radio" name="sqlev" id="sq2"><label class="btn btn-outline-success" for="sq2">2</label>
+                  <input class="btn-check" type="radio" name="sqlev" id="sq3"><label class="btn btn-outline-success" for="sq3">3</label>
+                  <input class="btn-check" type="radio" name="sqlev" id="sq4"><label class="btn btn-outline-success" for="sq4">4</label>
+                </div>
+                <div class="text-secondary small mb-1 mt-2">詳細</div>
+                <div class="d-flex flex-wrap gap-2 mb-2">
+                  <input class="btn-check" id="sqINV" type="checkbox"><label class="btn btn-outline-secondary btn-sm" for="sqINV">*</label>
+                </div>
+                <div class="d-flex justify-content-between mt-1">
+                  <div></div>
+                  <div class="btn-group">
+                    <button class="btn btn-primary" id="btn-add-seq"><i class="bi bi-check2"></i> 要素を追加</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <nav>
-          <div class="nav nav-tabs" id="ele-sel-nav-tab" role="tablist">
-            <a class="nav-item nav-link active" id="nav-jmp-tab" data-toggle="tab" href="#nav-jmp" role="tab" aria-controls="nav-jmp" aria-selected="true">ジャンプ</a>
-            <a class="nav-item nav-link" id="nav-sp-tab" data-toggle="tab" href="#nav-sp" role="tab" aria-controls="nav-sp" aria-selected="false">スピン</a>
-            <a class="nav-item nav-link" id="nav-seq-tab" data-toggle="tab" href="#nav-seq" role="tab" aria-controls="nav-seq" aria-selected="false">シークエンス</a>
-            <a class="nav-item nav-link" id="nav-pcs-tab" data-toggle="tab" href="#nav-pcs" role="tab" aria-controls="nav-pcs" aria-selected="false">PCS</a>
 
-          </div>
-        </nav>
-        <div class="tab-content" id="nav-tabContent">
-          <div class="tab-pane fade show active nav-jmp" id="nav-jmp" role="tabpanel" aria-labelledby="nav-jmp-tab">
-            <h3>ジャンプを追加</h3>
-            <h6>回転数</h6>
-            <div class="btn-group setLOD">
-              <button type="button" class="btn btn-outline-primary">0</button>
-              <button type="button" class="btn btn-outline-primary">1</button>
-              <button type="button" class="btn btn-outline-primary">2</button>
-              <button type="button" class="btn btn-outline-primary">3</button>
-              <button type="button" class="btn btn-outline-primary">4</button>
-              <button type="button" class="btn btn-outline-primary">5</button>
-            </div>
-
-            <h6>種類</h6>
-            <div class="btn-group setName">
-              <button type="button" class="btn btn-outline-primary">A</button>
-              <button type="button" class="btn btn-outline-primary">T</button>
-              <button type="button" class="btn btn-outline-primary">S</button>
-              <button type="button" class="btn btn-outline-primary">Lo</button>
-              <button type="button" class="btn btn-outline-primary">F</button>
-              <button type="button" class="btn btn-outline-primary">Lz</button>
-              <button type="button" class="btn btn-outline-primary">Eu</button>
-            </div>
-
-            <h6>詳細</h6>
-            <div class="btn-group">
-              <button type="button" class="btn btn-outline-primary addJump">+</button>
-              <button type="button" class="btn btn-outline-primary setUr">&lt;</button>
-              <button type="button" class="btn btn-outline-primary setDg">&lt;&lt;</button>
-              <button type="button" class="btn btn-outline-primary setEdge">e</button>
-              <button type="button" class="btn btn-outline-primary setREP">+REP</button>
-              <button type="button" class="btn btn-outline-primary setBonus">x</button>
-              <button type="button" class="btn btn-outline-primary setInvalid">*</button>
-            </div>
-
-            <div class="goe-sel">
-              <h6>GOE</h6>
-              <div class="btn-toolbar setGOE" role="toolbar" aria-label="GOE Selector">
-                <div class="btn-group pr-2" role="group" aria-label="pos GOE">
-                  <button type="button" class="btn btn-danger">-5</button>
-                  <button type="button" class="btn btn-outline-danger">-4</button>
-                  <button type="button" class="btn btn-outline-danger">-3</button>
-                  <button type="button" class="btn btn-outline-danger">-2</button>
-                  <button type="button" class="btn btn-outline-danger">-1</button>
-
-                </div>
-                <div class="btn-group" role="group" aria-label="zero GOE">
-                  <button type="button" class="btn btn-dark">0</button>
-                </div>
-                <div class="btn-group pl-2" role="group" aria-label="neg GOE">
-
-                  <button type="button" class="btn btn-outline-success">1</button>
-                  <button type="button" class="btn btn-outline-success">2</button>
-                  <button type="button" class="btn btn-outline-success">3</button>
-                  <button type="button" class="btn btn-outline-success">4</button>
-                  <button type="button" class="btn btn-success">5</button>
-
-                </div>
-
+        <!-- PCS -->
+        <div class="card shadow-sm mt-3">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <div class="section-title">PCS</div>
+              <div class="input-group input-group-sm" style="width: 180px;">
+                <span class="input-group-text">係数</span>
+                <input type="number" class="form-control" id="pcs-factor" value="1.67" step="0.01">
               </div>
-
             </div>
-            <div>
-              <button type="button" class="btn btn-outline-danger clearEntry">入力をクリア</button>
-              <button type="button" class="btn btn-outline-success addElement">要素を追加</button>
-            </div>
-
-          </div>
-          <div class="tab-pane fade nav-sp" id="nav-sp" role="tabpanel" aria-labelledby="nav-sp-tab">
-            <h3>スピンを追加</h3>
-            <h6>詳細</h6>
-            <div class="btn-group">
-              <button type="button" class="btn btn-outline-dark setFly">F</button>
-              <button type="button" class="btn btn-outline-dark setCOF">C</button>
-              <button type="button" class="btn btn-outline-dark setSpinV">V</button>
-              <button type="button" class="btn btn-outline-dark setInvalid">*</button>
-            </div>
-
-            <h6>種類</h6>
-            <div class="btn-group setName">
-              <button type="button" class="btn btn-outline-dark">USp</button>
-              <button type="button" class="btn btn-outline-dark">LSp</button>
-              <button type="button" class="btn btn-outline-dark">CSp</button>
-              <button type="button" class="btn btn-outline-dark">SSp</button>
-              <button type="button" class="btn btn-outline-dark">CoSp</button>
-
-            </div>
-            <h6>レベル</h6>
-            <div class="btn-group setLOD">
-              <button type="button" class="btn btn-outline-dark">0</button>
-              <button type="button" class="btn btn-outline-dark">B</button>
-              <button type="button" class="btn btn-outline-dark">1</button>
-              <button type="button" class="btn btn-outline-dark">2</button>
-              <button type="button" class="btn btn-outline-dark">3</button>
-              <button type="button" class="btn btn-outline-dark">4</button>
-            </div>
-
-            <div class="goe-sel">
-              <h6>GOE</h6>
-              <div class="btn-toolbar setGOE" role="toolbar" aria-label="GOE Selector">
-                <div class="btn-group pr-2" role="group" aria-label="pos GOE">
-                  <button type="button" class="btn btn-danger">-5</button>
-                  <button type="button" class="btn btn-outline-danger">-4</button>
-                  <button type="button" class="btn btn-outline-danger">-3</button>
-                  <button type="button" class="btn btn-outline-danger">-2</button>
-                  <button type="button" class="btn btn-outline-danger">-1</button>
-
+            <div class="row g-3">
+              <div class="col-12 col-sm-4">
+                <div class="d-flex justify-content-between align-items-center">
+                  <label class="form-label mb-0" for="pcs-co">構成</label>
+                  <span class="badge text-bg-secondary" id="pcs-co-val">0.00</span>
                 </div>
-                <div class="btn-group" role="group" aria-label="zero GOE">
-                  <button type="button" class="btn btn-dark">0</button>
-                </div>
-                <div class="btn-group pl-2" role="group" aria-label="neg GOE">
-
-                  <button type="button" class="btn btn-outline-success">1</button>
-                  <button type="button" class="btn btn-outline-success">2</button>
-                  <button type="button" class="btn btn-outline-success">3</button>
-                  <button type="button" class="btn btn-outline-success">4</button>
-                  <button type="button" class="btn btn-success">5</button>
-
-                </div>
-
+                <input id="pcs-co" type="range" class="form-range" min="0" max="10" step="0.25" value="0">
               </div>
-
-            </div>
-            <div>
-              <button type="button" class="btn btn-outline-danger clearEntry">入力をクリア</button>
-              <button type="button" class="btn btn-outline-success addElement">要素を追加</button>
-            </div>
-          </div>
-
-          <div class="tab-pane fade nav-seq" id="nav-seq" role="tabpanel" aria-labelledby="nav-seq-tab">
-            <h3>シークエンスを追加</h3>
-
-            <h6>種類</h6>
-            <div class="btn-group setName">
-              <button type="button" class="btn btn-outline-info">StSq</button>
-              <button type="button" class="btn btn-outline-info">ChSq</button>
-            </div>
-
-            <h6>レベル</h6>
-            <div class="btn-group setLOD">
-              <button type="button" class="btn btn-outline-info">0</button>
-              <button type="button" class="btn btn-outline-info">B</button>
-              <button type="button" class="btn btn-outline-info">1</button>
-              <button type="button" class="btn btn-outline-info">2</button>
-              <button type="button" class="btn btn-outline-info">3</button>
-              <button type="button" class="btn btn-outline-info">4</button>
-            </div>
-
-            <h6>詳細</h6>
-            <div class="btn-group">
-              <button type="button" class="btn btn-outline-info setInvalid">*</button>
-            </div>
-            <div class="goe-sel">
-              <h6>GOE</h6>
-              <div class="btn-toolbar setGOE" role="toolbar" aria-label="GOE Selector">
-                <div class="btn-group pr-2" role="group" aria-label="pos GOE">
-                  <button type="button" class="btn btn-danger">-5</button>
-                  <button type="button" class="btn btn-outline-danger">-4</button>
-                  <button type="button" class="btn btn-outline-danger">-3</button>
-                  <button type="button" class="btn btn-outline-danger">-2</button>
-                  <button type="button" class="btn btn-outline-danger">-1</button>
-
+              <div class="col-12 col-sm-4">
+                <div class="d-flex justify-content-between align-items-center">
+                  <label class="form-label mb-0" for="pcs-pr">表現</label>
+                  <span class="badge text-bg-secondary" id="pcs-pr-val">0.00</span>
                 </div>
-                <div class="btn-group" role="group" aria-label="zero GOE">
-                  <button type="button" class="btn btn-dark">0</button>
-                </div>
-                <div class="btn-group pl-2" role="group" aria-label="neg GOE">
-
-                  <button type="button" class="btn btn-outline-success">1</button>
-                  <button type="button" class="btn btn-outline-success">2</button>
-                  <button type="button" class="btn btn-outline-success">3</button>
-                  <button type="button" class="btn btn-outline-success">4</button>
-                  <button type="button" class="btn btn-success">5</button>
-
-                </div>
-
+                <input id="pcs-pr" type="range" class="form-range" min="0" max="10" step="0.25" value="0">
               </div>
-
+              <div class="col-12 col-sm-4">
+                <div class="d-flex justify-content-between align-items-center">
+                  <label class="form-label mb-0" for="pcs-ss">スケート技術</label>
+                  <span class="badge text-bg-secondary" id="pcs-ss-val">0.00</span>
+                </div>
+                <input id="pcs-ss" type="range" class="form-range" min="0" max="10" step="0.25" value="0">
+              </div>
             </div>
-            <div>
-              <button type="button" class="btn btn-outline-danger clearEntry">入力をクリア</button>
-              <button type="button" class="btn btn-outline-success addElement">要素を追加</button>
-            </div>
-
           </div>
-
-          <div class="tab-pane fade nav-pcs" id="nav-pcs" role="tabpanel" aria-labelledby="nav-pcs-tab">
-            <h3>PCS</h3>
-            <p id="factor"><span>係数: </span><span><input type="number" id="pcs-factor-box" class="pcs" value="1.67"></span></p>
-
-            <!-- <p><label for="pcs-tr">Transitions</label>&nbsp;&nbsp;<input type="number" value ="0.00" class="pcs" id="pcs-tr-box" min="0" max="10" step="0.25"></p>
-            <p>&nbsp;&nbsp;<input type="range" class="custom-range pcs-slider" value ="0.00" min="0" max="10" step="0.25" id="pcs-tr-slider"></p>
- -->
-
-            <p><label for="pcs-co">構成</label>&nbsp;&nbsp;<input type="number" value ="0.00" class="pcs" id="pcs-co-box" min="0" max="10" step="0.25"></p>
-            <p>&nbsp;&nbsp;<input type="range" class="custom-range pcs-slider" value ="0.00" min="0" max="10" step="0.25" id="pcs-co-slider"></p>
-            
-            <p><label for="pcs-pr">表現</label>&nbsp;&nbsp;<input type="number" value ="0.00" class="pcs" id="pcs-pr-box" min="0" max="10" step="0.25"></p>
-            <p>&nbsp;&nbsp;<input type="range" class="custom-range pcs-slider" value ="0.00" min="0" max="10" step="0.25" id="pcs-pr-slider"></p>
-
-            <p><label for="pcs-ss">スケート技術</label>&nbsp;&nbsp;<input type="number" value ="0.00" class="pcs" id="pcs-ss-box" min="0" max="10" step="0.25"></p>
-            <p>&nbsp;&nbsp;<input type="range" class="custom-range pcs-slider" value ="0.00" min="0" max="10" step="0.25" id="pcs-ss-slider"></p>
-
-            <!-- <p><label for="pcs-in">Interpretation of the Music</label>&nbsp;&nbsp;<input type="number" id="pcs-in-box" value ="0.00" class="pcs" min="0" max="10" step="0.25"></p>
-            <p>&nbsp;&nbsp;<input type="range" class="custom-range pcs-slider" value ="0.00" min="0" max="10" step="0.25" id="pcs-in-slider"></p> -->
-
-          </div>
-
-
         </div>
       </div>
-      <div class="col-md-6">
-        <table class="table table-striped">
-          <thead>
-            <tr>
-              <th scope="col">#</th>
-              <th scope="col">実行要素</th>
-              <th scope="col">基礎点</th>
-              <th scope="col">GOE</th>
-              <th scope="col">GOE値</th>
-              <th scope="col">得点</th>
-              <th scope="col"></th>
-            </tr>
-          </thead>
-          <tbody class="displayTable">
-            <!-- <tr>
-            <td>1</td>
-            <td>1A&lt;*</td>
-            <td>1.1</td>
-            <td>+4</td>
-            <td>0.5</td>
-            <td>1.6</td>
-            <td><i class="delete far fa-trash-alt"></i></td>
-          </tr> -->
-        </tbody>
-      </table>
-      <p id="tes-box"><span>TES: </span><span id="tes">0.00</span></p>
-      <p id="pcs-box"><span>PCS: </span><span id="pcs">0.00</span></p>
-      <p id="tss-box"><span>合計得点: </span><span id="tss">0.00</span></p>
+
+      <!-- 右: プログラム/スコア -->
+      <div class="col-12 col-lg-6">
+        <div class="sticky-col">
+          <div class="card shadow-sm mb-3">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center">
+                <div class="section-title">プログラム要素</div>
+              </div>
+              <div class="table-responsive" style="max-height: 46vh;">
+                <table class="table align-middle" id="elements-table">
+                  <thead>
+                    <tr>
+                      <th style="width:36px"></th>
+                      <th>#</th>
+                      <th>実行要素</th>
+                      <th>基礎点</th>
+                      <th>GOE</th>
+                      <th>GOE値</th>
+                      <th>得点</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody class="displayTable">
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="card shadow-sm">
+            <div class="card-body">
+              <div class="row g-3 align-items-center">
+                <div class="col-12 col-sm">
+                  <div class="text-secondary small">TES</div>
+                  <div class="h3 m-0 score-pill" id="tes">0.00</div>
+                </div>
+                <div class="col-12 col-sm">
+                  <div class="text-secondary small">PCS</div>
+                  <div class="h3 m-0 score-pill" id="pcs">0.00</div>
+                </div>
+                <div class="col-12 col-sm">
+                  <div class="text-secondary small">減点</div>
+                  <div>
+                    <input type="number" class="form-control form-control-sm" id="deduct" value="0" step="0.1">
+                  </div>
+                </div>
+                <div class="col-12 col-sm">
+                  <div class="text-secondary small">合計</div>
+                  <div class="h2 m-0 score-pill text-primary" id="tss">0.00</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ヘルプ -->
+  <div class="offcanvas offcanvas-end" tabindex="-1" id="help" aria-labelledby="helpLabel">
+    <div class="offcanvas-header">
+      <h5 id="helpLabel">操作のヒント</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+      <ul>
+        <li>ジャンプ種類選択後、利用可能な回転数のみが有効になります。</li>
+        <li>GOEはスライダーで素早く調整できます。</li>
+        <li>要素一覧はドラッグで並べ替えできます。</li>
+      </ul>
     </div>
   </div>
 
-  <hr />
-  <p><small>version 0.2.3 &centerdot; <a href="https://github.com/hjjerrychen/skatecalc">GitHub</a></small></p>
-</div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script type="module">
+    import { initSOV, getAvailableRotationsFor, basevalues } from './basevalues.js';
 
+    const state = {
+      buffer: [newPart()],
+      elements: [],
+      pcs: { co: 0, pr: 0, ss: 0, factor: 1.67 },
+      deduct: 0,
+      editingIndex: null,
+    };
+
+    function newPart(){
+      return { type:null, name:null, lod:'0', ur:false, dg:false, edge:false, rep:false, spinV:false, fly:false, cof:false, invalid:false, bonus:false, goe:0 };
+    }
+
+    function deepClone(obj){ return JSON.parse(JSON.stringify(obj)); }
+
+    function updateRotationButtons(){
+      const type = document.querySelector('input[name="type"]:checked')?.value;
+      const rotRadios = [0,1,2,3,4,5].map(n=>document.getElementById('rot'+n));
+      rotRadios.forEach(r=>{ if(r) r.disabled = true; });
+      if (!type){ if(rotRadios[0]) rotRadios[0].disabled=false; return; }
+      const avail = getAvailableRotationsFor(type);
+      rotRadios.forEach((r,idx)=>{ if(!r) return; if(idx===0 || avail.includes(idx)) r.disabled=false; });
+      // 5回転時はA無効
+      const rot = document.querySelector('input[name="rot"]:checked')?.value;
+      const aBtn = document.getElementById('tA');
+      if (aBtn){ aBtn.disabled = (rot==='5'); }
+    }
+
+    function currentTab(){
+      if (document.getElementById('pane-jmp').classList.contains('active')) return 'jump';
+      if (document.getElementById('pane-spin').classList.contains('active')) return 'spin';
+      return 'seq';
+    }
+
+    function isRenderablePart(p){
+      if (!p || !p.type) return false;
+      if (p.type === 'jump') return !!p.name; // lodは0以外が望ましいが、表示上はnameがあれば十分
+      if (p.type === 'spin') return !!p.name;
+      if (p.type === 'seq') return !!p.name;
+      return false;
+    }
+
+    function buildBufferedParts(){
+      const tab = currentTab();
+      const parts = deepClone(state.buffer);
+      if (tab==='jump'){
+        // reflect UI to buffer[buffer.length-1]
+        const p = parts[parts.length-1];
+        p.type = 'jump';
+        p.lod = document.querySelector('input[name="rot"]:checked')?.value || '0';
+        p.name = document.querySelector('input[name="type"]:checked')?.value || null;
+        p.ur = document.getElementById('flagUR').checked;
+        p.dg = document.getElementById('flagDG').checked;
+        p.edge = document.getElementById('flagE').checked;
+        p.rep = document.getElementById('flagREP').checked;
+        p.invalid = document.getElementById('flagINV').checked;
+        parts[0].bonus = document.getElementById('bonus').checked;
+        parts[0].goe = parseInt(document.getElementById('goe').value)||0;
+      } else if (tab==='spin'){
+        const p = newPart();
+        p.type='spin';
+        p.name = ['USp','LSp','CSp','SSp','CoSp'].find(id=>document.getElementById('sp'+id)?.checked) || null;
+        const lev = ['0','B','1','2','3','4'].find(id=>document.getElementById('lev'+id)?.checked);
+        p.lod = lev || '0';
+        p.fly = document.getElementById('spF').checked;
+        p.cof = document.getElementById('spC').checked;
+        p.spinV = document.getElementById('spV').checked;
+        p.invalid = document.getElementById('spINV').checked;
+        parts.length = 0; parts.push(p);
+        parts[0].goe = parseInt(document.getElementById('goe').value)||0;
+      } else {
+        const p = newPart();
+        p.type='seq';
+        p.name = (document.getElementById('sqStSq')?.checked? 'StSq' : (document.getElementById('sqChSq')?.checked? 'ChSq': null));
+        const lev = ['0','B','1','2','3','4'].find(id=>document.getElementById('sq'+id)?.checked);
+        p.lod = lev || '0';
+        p.invalid = document.getElementById('sqINV').checked;
+        parts.length = 0; parts.push(p);
+        parts[0].goe = parseInt(document.getElementById('goe').value)||0;
+      }
+      return parts;
+    }
+
+    function getElementDisplayText(parts){
+      const seq = parts.filter(isRenderablePart);
+      let out = '';
+      for (let i=0;i<seq.length;i++){
+        const p = seq[i];
+        if (p.type==='jump'){
+          if (p.lod && p.lod!=='0') out += String(p.lod);
+          if (p.name) out += p.name;
+          if (p.edge) out += 'e';
+          if (p.ur) out += '<';
+          if (p.dg) out += '<<';
+          if (p.invalid) out += '*';
+          if (p.rep) out += '+REP';
+        } else if (p.type==='spin'){
+          if (p.fly) out += 'F';
+          if (p.cof) out += 'C';
+          if (p.name) out += p.name;
+          if (p.lod && p.lod!=='0') out += String(p.lod);
+          if (p.spinV) out += 'V';
+          if (p.invalid) out += '*';
+        } else {
+          if (p.name) out += p.name;
+          if (p.lod && p.lod!=='0') out += String(p.lod);
+          if (p.invalid) out += '*';
+        }
+        if (i!==seq.length-1) out += '+';
+      }
+      if (seq.length>0 && parts[0]?.bonus) out += '  x';
+      return out;
+    }
+
+    function computeElementResult(parts){
+      const local = deepClone(parts).filter(isRenderablePart);
+      let sumBVForScore = 0.0;
+      const bvForGOEList = [];
+      for (let i=0;i<local.length;i++){
+        const p = local[i];
+        if (p.invalid){ p.bv = 0.0; }
+        else if (p.type==='jump'){
+          const lodInt = parseInt(p.lod||'0',10);
+          if (p.dg && lodInt!==0){ p.bv = basevalues[p.name]?.[lodInt-1] ?? 0.0; }
+          else { p.bv = basevalues[p.name]?.[p.lod] ?? 0.0; }
+        } else if (p.type==='seq'){
+          p.bv = basevalues[p.name]?.[p.lod] ?? 0.0;
+        } else { // spin
+          if (p.cof){ p.bv = basevalues[p.name]?.['C'+p.lod] ?? 0.0; }
+          else if (p.fly){ p.bv = basevalues[p.name]?.['F'+p.lod] ?? 0.0; }
+          else { p.bv = basevalues[p.name]?.[p.lod] ?? 0.0; }
+        }
+
+        p.bvForScoreCalculation = p.bv;
+        if (local[0].bonus) p.bvForScoreCalculation *= 1.1;
+        if (p.rep) p.bvForScoreCalculation *= 0.7;
+        if (p.ur && p.edge) p.bvForScoreCalculation *= 0.6;
+        else if (p.spinV) p.bvForScoreCalculation *= 0.75;
+        else if (p.ur || p.edge) p.bvForScoreCalculation *= 0.8;
+        sumBVForScore += p.bvForScoreCalculation;
+
+        if (p.name!=='ChSq'){
+          if (p.ur && p.edge) p.bvForGOECalculation = p.bv * 0.6;
+          else if (p.spinV) p.bvForGOECalculation = p.bv * 0.75;
+          else if (p.ur || p.edge) p.bvForGOECalculation = p.bv * 0.8;
+          else p.bvForGOECalculation = p.bv;
+        } else { p.bvForGOECalculation = p.bv; }
+        p.bvForGOECalculation = Math.round(p.bvForGOECalculation * 1000 / 10) / 100;
+        bvForGOEList.push(p.bvForGOECalculation);
+      }
+      const goe = parseInt(local[0].goe||0,10);
+      let goeValue = 0.0;
+      if (local[0].name==='ChSq') goeValue = goe * 0.5;
+      else if (goe!==0) goeValue = Math.max(...bvForGOEList,0) * (goe * 0.1);
+      goeValue = Math.round(goeValue * 1000 / 10) / 100;
+
+      const totalBV = Math.round(sumBVForScore * 1000 / 10) / 100;
+      const totalScore = Math.round((sumBVForScore + goeValue) * 1000 / 10) / 100;
+      return { totalBV, goe, goeValue, totalScore };
+    }
+
+    function renderPreview(){
+      const parts = buildBufferedParts();
+      let text = getElementDisplayText(parts);
+      // ジャンプタブで、新規パート入力待ち（最後が空）なら末尾に+
+      if (currentTab()==='jump'){
+        const visible = parts.filter(isRenderablePart);
+        const lastIsEmpty = !isRenderablePart(parts[parts.length-1]);
+        if (visible.length>0 && lastIsEmpty) text = (text||'') + '+';
+      }
+      document.getElementById('elemPreview').textContent = text || '要素';
+      const chips = document.getElementById('chips');
+      chips.innerHTML = '';
+      const p0 = parts.filter(isRenderablePart)[0] || parts[0];
+      if (p0.type==='jump'){
+        if (p0.lod!=='0') chips.insertAdjacentHTML('beforeend', `<span class="chip"><i class="bi bi-arrow-repeat"></i>${p0.lod}回転</span>`);
+        if (p0.name) chips.insertAdjacentHTML('beforeend', `<span class="chip"><i class="bi bi-circle"></i>${p0.name}</span>`);
+        ['UR','DG','e','REP','*'].forEach(f=>{ if ((f==='UR'&&p0.ur)||(f==='DG'&&p0.dg)||(f==='e'&&p0.edge)||(f==='REP'&&p0.rep)||(f==='*'&&p0.invalid)) chips.insertAdjacentHTML('beforeend', `<span class="chip">${f}</span>`); });
+        if (p0.bonus) chips.insertAdjacentHTML('beforeend', `<span class="chip">x</span>`);
+      }
+      const g = parseInt(document.getElementById('goe').value)||0;
+      document.getElementById('goeValue').textContent = (g>0?'+':'')+g;
+    }
+
+    function renderElements(){
+      const tbody = document.querySelector('.displayTable');
+      tbody.innerHTML = '';
+      state.elements.forEach((parts, idx)=>{
+        const res = computeElementResult(parts);
+        const tr = document.createElement('tr');
+        tr.dataset.index = String(idx);
+        tr.draggable = true;
+        tr.innerHTML = `
+          <td class="text-center"><i class="bi bi-grip-vertical handle"></i></td>
+          <td>${idx+1}</td>
+          <td>${getElementDisplayText(parts)}</td>
+          <td>${res.totalBV.toFixed(2)}</td>
+          <td>${res.goe>0?('+'+res.goe):res.goe}</td>
+          <td>${res.goeValue.toFixed(2)}</td>
+          <td class="elemScore">${res.totalScore.toFixed(2)}</td>
+          <td class="text-nowrap">
+            <button class="btn btn-sm btn-outline-secondary edit"><i class="bi bi-pencil"></i></button>
+            <button class="btn btn-sm btn-outline-danger delete"><i class="bi bi-trash"></i></button>
+          </td>`;
+        tbody.appendChild(tr);
+      });
+      attachRowHandlers();
+      updateTSS();
+    }
+
+    function attachRowHandlers(){
+      const tbody = document.querySelector('.displayTable');
+      tbody.querySelectorAll('.delete').forEach(btn=> btn.addEventListener('click', (e)=>{
+        const idx = parseInt(e.currentTarget.closest('tr').dataset.index,10);
+        state.elements.splice(idx,1);
+        renderElements();
+      }));
+      tbody.querySelectorAll('.edit').forEach(btn=> btn.addEventListener('click', (e)=>{
+        const idx = parseInt(e.currentTarget.closest('tr').dataset.index,10);
+        state.editingIndex = idx;
+        const parts = deepClone(state.elements[idx]);
+        loadPartsIntoUI(parts);
+      }));
+      // DnD
+      const rows = tbody.querySelectorAll('tr');
+      rows.forEach(r=>{
+        r.addEventListener('dragstart', (ev)=>{
+          ev.dataTransfer.setData('text/plain', ev.currentTarget.dataset.index);
+          ev.dataTransfer.effectAllowed='move';
+        });
+        r.addEventListener('dragover', (ev)=>{ ev.preventDefault(); ev.dataTransfer.dropEffect='move'; });
+        r.addEventListener('drop', (ev)=>{
+          ev.preventDefault();
+          const src = parseInt(ev.dataTransfer.getData('text/plain'),10);
+          const dst = parseInt(ev.currentTarget.dataset.index,10);
+          if (isNaN(src)||isNaN(dst)||src===dst) return;
+          const row = state.elements.splice(src,1)[0];
+          state.elements.splice(dst,0,row);
+          renderElements();
+        });
+      });
+    }
+
+    function updatePCSBadges(){
+      const co = Number(document.getElementById('pcs-co').value||0);
+      const pr = Number(document.getElementById('pcs-pr').value||0);
+      const ss = Number(document.getElementById('pcs-ss').value||0);
+      document.getElementById('pcs-co-val').textContent = co.toFixed(2);
+      document.getElementById('pcs-pr-val').textContent = pr.toFixed(2);
+      document.getElementById('pcs-ss-val').textContent = ss.toFixed(2);
+      state.pcs.co = co; state.pcs.pr = pr; state.pcs.ss = ss;
+      state.pcs.factor = Number(document.getElementById('pcs-factor').value||1.67);
+      updateTSS();
+    }
+
+    function updateTSS(){
+      // TES
+      let tes = 0;
+      state.elements.forEach(parts=>{ tes += computeElementResult(parts).totalScore; });
+      tes = Math.round(tes * 1000 / 10) / 100;
+      document.getElementById('tes').textContent = tes.toFixed(2);
+      // PCS
+      let pcsTotal = (state.pcs.co + state.pcs.pr + state.pcs.ss) * state.pcs.factor;
+      pcsTotal = Math.round(pcsTotal * 1000 / 10) / 100;
+      document.getElementById('pcs').textContent = pcsTotal.toFixed(2);
+      // TSS
+      const deduct = Number(document.getElementById('deduct').value||0);
+      const tss = Math.round((tes + pcsTotal + deduct) * 1000 / 10) / 100;
+      document.getElementById('tss').textContent = tss.toFixed(2);
+    }
+
+    function addJumpToBuffer(){
+      // まず現在のUI内容を最後のパートに反映して確定
+      state.buffer = buildBufferedParts();
+      // 新しい空パートを末尾に追加
+      const np = newPart(); np.type='jump';
+      state.buffer.push(np);
+      renderPreview();
+    }
+
+    function clearEntry(){ state.buffer = [newPart()]; renderPreview(); }
+
+    function finalizeElementFromCurrentTab(){
+      let parts = buildBufferedParts();
+      if (!parts[0].type || !parts[0].name){ return; }
+      if (state.editingIndex!=null){ state.elements[state.editingIndex] = parts; state.editingIndex=null; }
+      else state.elements.push(parts);
+      renderElements();
+      clearEntry();
+    }
+
+    function activateTab(tab){
+      const map = { jump: 'tab-jmp', spin: 'tab-spin', seq: 'tab-seq' };
+      const btnId = map[tab];
+      if (btnId){ document.getElementById(btnId).click(); }
+    }
+
+    function loadPartsIntoUI(parts){
+      if (!parts || parts.length===0) return;
+      const first = parts[0];
+      if (first.type==='jump'){
+        activateTab('jump');
+        // バッファそのものを反映
+        state.buffer = deepClone(parts);
+        const last = state.buffer[state.buffer.length-1];
+        // UIを最後のパートでセット
+        if (last.lod) { const r = document.getElementById('rot'+last.lod); if (r) r.checked = true; }
+        if (last.name) { const id = 't'+last.name; const t = document.getElementById(id); if (t) t.checked = true; }
+        document.getElementById('flagUR').checked = !!last.ur;
+        document.getElementById('flagDG').checked = !!last.dg;
+        document.getElementById('flagE').checked = !!last.edge;
+        document.getElementById('flagREP').checked = !!last.rep;
+        document.getElementById('flagINV').checked = !!last.invalid;
+        document.getElementById('bonus').checked = !!first.bonus;
+        document.getElementById('goe').value = String(first.goe || 0);
+        updateRotationButtons();
+        renderPreview();
+      } else if (first.type==='spin'){
+        activateTab('spin');
+        state.buffer = deepClone(parts);
+        const p = first;
+        const spId = 'sp'+p.name; const sp = document.getElementById(spId); if (sp) sp.checked = true;
+        const lev = document.getElementById('lev'+p.lod); if (lev) lev.checked = true;
+        document.getElementById('spF').checked = !!p.fly;
+        document.getElementById('spC').checked = !!p.cof;
+        document.getElementById('spV').checked = !!p.spinV;
+        document.getElementById('spINV').checked = !!p.invalid;
+        document.getElementById('goe').value = String(p.goe || 0);
+        renderPreview();
+      } else if (first.type==='seq'){
+        activateTab('seq');
+        state.buffer = deepClone(parts);
+        if (first.name==='StSq') document.getElementById('sqStSq').checked = true;
+        else document.getElementById('sqChSq').checked = true;
+        const lev = document.getElementById('sq'+first.lod); if (lev) lev.checked = true;
+        document.getElementById('sqINV').checked = !!first.invalid;
+        document.getElementById('goe').value = String(first.goe || 0);
+        renderPreview();
+      }
+    }
+
+    // wire events
+    (async function(){
+      await initSOV();
+      // rotation availability
+      document.querySelectorAll('input[name="type"]').forEach(r=> r.addEventListener('change', ()=>{ updateRotationButtons(); renderPreview(); }));
+      document.querySelectorAll('input[name="rot"]').forEach(r=> r.addEventListener('change', ()=>{ updateRotationButtons(); renderPreview(); }));
+      document.getElementById('flagUR').addEventListener('change', renderPreview);
+      document.getElementById('flagDG').addEventListener('change', renderPreview);
+      document.getElementById('flagE').addEventListener('change', renderPreview);
+      document.getElementById('flagREP').addEventListener('change', renderPreview);
+      document.getElementById('flagINV').addEventListener('change', renderPreview);
+      document.getElementById('bonus').addEventListener('change', renderPreview);
+      document.getElementById('goe').addEventListener('input', renderPreview);
+
+      document.getElementById('spF').addEventListener('change', renderPreview);
+      document.getElementById('spC').addEventListener('change', renderPreview);
+      document.getElementById('spV').addEventListener('change', renderPreview);
+      document.getElementById('spINV').addEventListener('change', renderPreview);
+      document.querySelectorAll('input[name="sp"]').forEach(r=> r.addEventListener('change', renderPreview));
+      document.querySelectorAll('input[name="lev"]').forEach(r=> r.addEventListener('change', renderPreview));
+      document.getElementById('sqINV').addEventListener('change', renderPreview);
+      document.querySelectorAll('input[name="sq"]').forEach(r=> r.addEventListener('change', renderPreview));
+      document.querySelectorAll('input[name="sqlev"]').forEach(r=> r.addEventListener('change', renderPreview));
+
+      document.getElementById('btn-add-jump').addEventListener('click', addJumpToBuffer);
+      document.getElementById('btn-clear-entry').addEventListener('click', clearEntry);
+      document.getElementById('btn-add-element').addEventListener('click', finalizeElementFromCurrentTab);
+      document.getElementById('btn-add-spin').addEventListener('click', finalizeElementFromCurrentTab);
+      document.getElementById('btn-add-seq').addEventListener('click', finalizeElementFromCurrentTab);
+
+      document.getElementById('pcs-co').addEventListener('input', updatePCSBadges);
+      document.getElementById('pcs-pr').addEventListener('input', updatePCSBadges);
+      document.getElementById('pcs-ss').addEventListener('input', updatePCSBadges);
+      document.getElementById('pcs-factor').addEventListener('input', updatePCSBadges);
+      document.getElementById('deduct').addEventListener('input', updateTSS);
+
+      updateRotationButtons();
+      renderPreview();
+      updatePCSBadges();
+    })();
+  </script>
 </body>
+<!-- このHTMLはメインUIです（ui_prototypeから移行）。 -->
 </html>
