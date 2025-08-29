@@ -226,6 +226,16 @@ function setType(node){
     // ジャンプの種類に応じて動的に回転数ボタンを制御
     const jumpType = buffer[buffer.length - 1].name;
     updateRotationButtons(jumpType);
+    
+    // 5回転選択時にAボタンを無効化
+    const rotation = buffer[buffer.length - 1].lod;
+    if (rotation === "5") {
+      $("#nav-jmp .setType button").each(function() {
+        if ($(this).text() === "A") {
+          $(this).prop("disabled", true);
+        }
+      });
+    }
   }
   else if ($(node).parents(".nav-sp").length){
     buffer[buffer.length - 1].type = "spin";
@@ -280,6 +290,23 @@ function setType(node){
 
 function setLOD(){
   buffer[buffer.length - 1].lod = $(this).html();
+  
+  // 5回転選択時にAボタンを無効化
+  if ($(this).html() === "5") {
+    $("#nav-jmp .setName button").each(function() {
+      if ($(this).text() === "A") {
+        $(this).prop("disabled", true);
+      }
+    });
+  } else {
+    // 5回転以外の場合はAボタンを有効化
+    $("#nav-jmp .setName button").each(function() {
+      if ($(this).text() === "A") {
+        $(this).prop("disabled", false);
+      }
+    });
+  }
+  
   setType(this);
   renderBufferedElement();
 }
