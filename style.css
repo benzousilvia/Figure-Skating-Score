@@ -63,3 +63,40 @@ hr{
 #factor {
   font-weight: 500;
 }
+
+/* スマホ表示用最小改修 */
+/* タイトル1行固定 */
+h1 {
+  font-size: clamp(1.2rem, 5vw, 2rem);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* タブを1行で収める */
+.nav-tabs {
+  overflow-x: hidden;
+}
+
+.nav-tabs .nav-link {
+  flex: 1 1 0;
+  min-width: 0;
+  white-space: nowrap;
+  text-align: center;
+  padding: 8px 6px;
+  font-size: 14px;
+}
+
+/* 極小端末でさらに詰める */
+@media (max-width: 360px) {
+  .nav-tabs .nav-link { 
+    font-size: 13px; 
+    padding: 8px 4px; 
+  }
+}
+
+/* はみ出し防止 */
+img, table { 
+  max-width: 100%; 
+  height: auto; 
+}
