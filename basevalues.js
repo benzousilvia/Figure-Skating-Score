@@ -8,12 +8,19 @@ async function initSOV() {
   if (SOV) return;
   
   try {
+    console.log('Attempting to fetch SOV JSON data...');
     const res = await fetch('./isu_sov_2025_26_singles_pairs.json');
-    if (!res.ok) throw new Error('Failed to load SOV JSON');
+    console.log('Fetch response status:', res.status, res.statusText);
+    
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    }
+    
     SOV = await res.json();
+    console.log('SOV data loaded successfully. Elements count:', Object.keys(SOV.elements || {}).length);
   } catch (error) {
     console.error('Error loading SOV data:', error);
-    throw error;
+    throw new Error(`Failed to load SOV data: ${error.message}`);
   }
 }
 
@@ -142,9 +149,11 @@ const basevalues = new Proxy({}, {
 });
 
 // グローバルに公開（既存コードとの互換性のため）
-window.initSOV = initSOV;
-window.getBase = getBase;
-window.getDelta = getDelta;
-window.getScore = getScore;
-window.getAvailableRotationsFor = getAvailableRotationsFor;
-window.basevalues = basevalues;
+if (typeof window !== 'undefined') {
+  window.initSOV = initSOV;
+  window.getBase = getBase;
+  window.getDelta = getDelta;
+  window.getScore = getScore;
+  window.getAvailableRotationsFor = getAvailableRotationsFor;
+  window.basevalues = basevalues;
+}

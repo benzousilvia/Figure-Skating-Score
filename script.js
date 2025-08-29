@@ -31,11 +31,26 @@ var deduct = 0.0;
 // 非同期初期化対応
 window.addEventListener('DOMContentLoaded', async function() {
   try {
-    await initSOV();
+    console.log('Starting SOV initialization...');
+    
+    if (typeof window.initSOV !== 'function') {
+      throw new Error('initSOV function not found. Check if basevalues.js is loaded correctly.');
+    }
+    
+    await window.initSOV();
+    console.log('SOV initialization completed successfully');
+    
     initApp();
+    console.log('Application initialized successfully');
   } catch (error) {
-    console.error('Failed to initialize SOV data:', error);
-    alert('データの読み込みに失敗しました。ページを再読み込みしてください。');
+    console.error('Failed to initialize:', error);
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      initSOVExists: typeof window.initSOV,
+      basevaluesExists: typeof window.basevalues
+    });
+    alert('データの読み込みに失敗しました。ページを再読み込みしてください。\n詳細: ' + error.message);
   }
 });
 
