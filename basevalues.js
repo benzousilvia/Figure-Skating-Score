@@ -1,10 +1,10 @@
-// basevalues.js - JSON Adapter for ISU SOV 2025-26
-// Maintains backwards compatibility with existing script.js calls
+// basevalues.js - ESM JSON Adapter for ISU SOV 2025-26
+// ES Modules版として完全リニューアル
 
 let SOV = null;
 
 // 非同期初期化関数
-async function initSOV() {
+export async function initSOV() {
   if (SOV) return;
   
   try {
@@ -24,48 +24,45 @@ async function initSOV() {
   }
 }
 
-// SOV APIの関数
-function getBase(code) {
+// SOV API関数
+export function getBase(code) {
   const e = SOV?.elements?.[code];
   if (!e) throw new Error(`Unknown element code: ${code}`);
   return e.base;
 }
 
-function getDelta(code, goe) {
+export function getDelta(code, goe) {
   if (goe === 0) return 0;
   const e = SOV?.elements?.[code];
   if (!e) throw new Error(`Unknown element code: ${code}`);
-  const key = String(goe);
-  const d = e.goe[key];
-  if (typeof d !== 'number') throw new Error(`No GOE=${key} for ${code}`);
+  const d = e.goe[String(goe)];
+  if (typeof d !== 'number') throw new Error(`No GOE=${goe} for ${code}`);
   return d;
 }
 
-function getScore(code, goe) {
+export function getScore(code, goe) {
   const v = getBase(code) + getDelta(code, goe);
-  return Math.round(v * 100) / 100; // 小数第2位で丸める
+  return Math.round(v * 100) / 100;
 }
 
 // 5回転対応：指定した素ジャンプで利用可能な回転数を返す
-function getAvailableRotationsFor(baseJump) {
+export function getAvailableRotationsFor(baseJump) {
   if (!SOV?.elements) return [];
   const exist = new Set(Object.keys(SOV.elements));
-  const available = [];
-  
-  const maxRotations = baseJump === 'Eu' ? 2 : baseJump === 'A' ? 4 : 5;
-  
-  for (let n = 1; n <= maxRotations; n++) {
+  const letters = ['T','S','Lo','F','Lz','A'];
+  if (!letters.includes(baseJump)) return [];
+  const rot = [];
+  for (let n=1; n<=5; n++) {
     const code = `${n}${baseJump}`;
-    // 素の要素コードまたは派生形が存在するかチェック
     if ([code, `${code}q`, `${code}<`, `${code}<<`, `${code}!`].some(c => exist.has(c))) {
-      available.push(n);
+      rot.push(n);
     }
   }
-  return available;
+  return rot;
 }
 
-// 既存のbasevaluesオブジェクトの互換性を保つためのプロキシ
-const basevalues = new Proxy({}, {
+// 既存のbasevaluesオブジェクト互換性（レガシー対応）
+export const basevalues = new Proxy({}, {
   get(target, prop) {
     if (!SOV) {
       throw new Error('SOV data not loaded. Call initSOV() first.');
@@ -76,21 +73,19 @@ const basevalues = new Proxy({}, {
       return new Proxy([], {
         get(target, index) {
           if (index === 'length') {
-            // 利用可能な回転数の最大値+1を返す
             const available = getAvailableRotationsFor(prop);
             return available.length > 0 ? Math.max(...available) + 1 : 3;
           }
           
           const rotation = parseInt(index);
           if (isNaN(rotation) || rotation < 0) return undefined;
-          
-          if (rotation === 0) return 0.0; // 0回転は0点
+          if (rotation === 0) return 0.0;
           
           const code = `${rotation}${prop}`;
           try {
             return getBase(code);
           } catch (error) {
-            return undefined; // 存在しない場合はundefined
+            return undefined;
           }
         }
       });
@@ -105,7 +100,7 @@ const basevalues = new Proxy({}, {
             try {
               return getBase('ChSq1');
             } catch {
-              return 3.0; // フォールバック
+              return 3.0;
             }
           }
           return undefined;
@@ -123,10 +118,9 @@ const basevalues = new Proxy({}, {
           if (prop === 'StSq') {
             code = `${prop}${level}`;
           } else {
-            // スピンの場合、F（フライング）やC（コンビネーション）プレフィックスを処理
             if (typeof level === 'string' && level.match(/^[FC]/)) {
-              const modifier = level[0]; // F または C
-              const actualLevel = level.slice(1); // レベル部分
+              const modifier = level[0];
+              const actualLevel = level.slice(1);
               if (actualLevel === '0') return 0.0;
               code = `${modifier}${prop}${actualLevel}`;
             } else {
@@ -138,7 +132,7 @@ const basevalues = new Proxy({}, {
             return getBase(code);
           } catch (error) {
             console.warn(`Base value not found for ${code}`);
-            return 0.0; // 見つからない場合は0を返す
+            return 0.0;
           }
         }
       });
@@ -147,13 +141,3 @@ const basevalues = new Proxy({}, {
     return undefined;
   }
 });
-
-// グローバルに公開（既存コードとの互換性のため）
-if (typeof window !== 'undefined') {
-  window.initSOV = initSOV;
-  window.getBase = getBase;
-  window.getDelta = getDelta;
-  window.getScore = getScore;
-  window.getAvailableRotationsFor = getAvailableRotationsFor;
-  window.basevalues = basevalues;
-}

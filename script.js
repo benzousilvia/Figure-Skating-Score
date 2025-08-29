@@ -1,3 +1,6 @@
+// ES Modules インポート
+import { initSOV, getScore, getAvailableRotationsFor, basevalues } from './basevalues.js';
+
 var buffer = [{
   type: null,
   name: null,
@@ -28,28 +31,17 @@ var pcsTotal = 0.0;
 var tss = 0.0;
 var deduct = 0.0;
 
-// 非同期初期化対応
-window.addEventListener('DOMContentLoaded', async function() {
+// ESM 非同期初期化対応
+document.addEventListener('DOMContentLoaded', async function() {
   try {
     console.log('Starting SOV initialization...');
-    
-    if (typeof window.initSOV !== 'function') {
-      throw new Error('initSOV function not found. Check if basevalues.js is loaded correctly.');
-    }
-    
-    await window.initSOV();
+    await initSOV();
     console.log('SOV initialization completed successfully');
     
     initApp();
     console.log('Application initialized successfully');
   } catch (error) {
     console.error('Failed to initialize:', error);
-    console.error('Error details:', {
-      message: error.message,
-      stack: error.stack,
-      initSOVExists: typeof window.initSOV,
-      basevaluesExists: typeof window.basevalues
-    });
     alert('データの読み込みに失敗しました。ページを再読み込みしてください。\n詳細: ' + error.message);
   }
 });
@@ -92,24 +84,28 @@ function initApp(){
 
 // 動的回転数制御関数
 function updateRotationButtons(jumpType) {
-  if (!jumpType || !window.getAvailableRotationsFor) return;
+  if (!jumpType) return;
   
-  const availableRotations = getAvailableRotationsFor(jumpType);
-  const rotationButtons = $("#nav-jmp .setLOD button");
-  
-  // すべて無効化
-  rotationButtons.prop("disabled", true);
-  
-  // 利用可能な回転数のボタンを有効化
-  rotationButtons.each(function(index) {
-    const rotation = parseInt($(this).text());
-    if (availableRotations.includes(rotation)) {
-      $(this).prop("disabled", false);
-    }
-  });
-  
-  // 0回転は常に有効
-  rotationButtons.eq(0).prop("disabled", false);
+  try {
+    const availableRotations = getAvailableRotationsFor(jumpType);
+    const rotationButtons = $("#nav-jmp .setLOD button");
+    
+    // すべて無効化
+    rotationButtons.prop("disabled", true);
+    
+    // 利用可能な回転数のボタンを有効化
+    rotationButtons.each(function(index) {
+      const rotation = parseInt($(this).text());
+      if (availableRotations.includes(rotation)) {
+        $(this).prop("disabled", false);
+      }
+    });
+    
+    // 0回転は常に有効
+    rotationButtons.eq(0).prop("disabled", false);
+  } catch (error) {
+    console.warn('Error updating rotation buttons:', error);
+  }
 }
 
 function updateTSS(){
