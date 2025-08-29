@@ -31,6 +31,11 @@ var pcsTotal = 0.0;
 var tss = 0.0;
 var deduct = 0.0;
 
+// 追加済み要素の配列（1行=bufferのスナップショット）
+var elements = [];
+// 編集中の行インデックス（null のときは新規追加）
+var editingIndex = null;
+
 // ESM 非同期初期化対応
 document.addEventListener('DOMContentLoaded', async function() {
   try {
@@ -80,6 +85,12 @@ function initApp(){
   $("#pcs-in-box").on("change keyup paste click", updateIN)
   $("#pcs-in-slider").on("change input click", updateIN)
   $("#pcs-factor-box").on("change keyup paste click", updateFactor)
+
+  // 並べ替え（D&D）イベントを設定
+  setupDragAndDrop();
+  // 行の編集/削除（委譲）
+  $(document).on('click', '.delete', onDeleteRow);
+  $(document).on('click', '.edit', onEditRow);
 }
 
 // 動的回転数制御関数
@@ -116,6 +127,31 @@ function updateTSS(){
   $("#tes").html(tes.toFixed(2));
   $("#pcs").html(pcsTotal.toFixed(2));
   $("#tss").html(tss.toFixed(2));
+}
+
+// 要素配列からテーブルを再描画
+function renderElements(){
+  const $tbody = $(".displayTable");
+  let html = "";
+  for (let i = 0; i < elements.length; i++){
+    const parts = elements[i];
+    const disp = getElementDisplayText(parts);
+    const res = computeElementResult(parts);
+    html += `<tr data-index="${i}" draggable="true">`;
+    html += `<td class="numElem">${i + 1}</td>`;
+    html += `<td>${disp}</td>`;
+    html += `<td>${res.totalBV.toFixed(2)}</td>`;
+    html += `<td>${res.goe}</td>`;
+    html += `<td>${res.goeValue.toFixed(2)}</td>`;
+    html += `<td class="elemScore">${res.totalScore.toFixed(2)}</td>`;
+    html += `<td>` +
+            `<i title="並べ替え" class="handle fas fa-grip-lines mr-2"></i>` +
+            `<i title="編集" class="edit far fa-edit mr-2"></i>` +
+            `<i title="削除" class="delete far fa-trash-alt"></i>` +
+            `</td>`;
+    html += `</tr>`;
+  }
+  $tbody.html(html);
 }
 
 function updatePCS(){
@@ -516,12 +552,24 @@ function clearEntry() {
 
 
   //setType();
+
+  // 編集状態のリセット
+  editingIndex = null;
+  $(".addElement").text("要素を追加");
 }
 
 function addElement(){
-  calculateBuffer();
-  numElementsInTable++;
-  appendToTable();
+  // 現在のbufferをスナップショット
+  const snapshot = JSON.parse(JSON.stringify(buffer));
+
+  if (editingIndex !== null){
+    elements[editingIndex] = snapshot;
+  } else {
+    elements.push(snapshot);
+  }
+
+  // テーブル再描画と再計算
+  renderElements();
   updateTSS();
   clearEntry();
 }
@@ -652,4 +700,155 @@ function updateTES(){
     totalScore += parseFloat($(".elemScore").eq(i).html());
   }
   tes = Math.round(totalScore * 1000 / 10) / 100
+}
+
+// 行編集開始（編集アイコン）
+function onEditRow(){
+  const idx = parseInt($(this).closest('tr').data('index'));
+  if (isNaN(idx)) return;
+  const snapshot = JSON.parse(JSON.stringify(elements[idx]));
+  buffer.length = 0;
+  for (const p of snapshot){ buffer.push(p); }
+  editingIndex = idx;
+  $(".addElement").prop("disabled", false).text("要素を更新");
+  $(".addJump").prop("disabled", false);
+  $("#nav-jmp .setLOD button").prop("disabled", false);
+  $("#nav-seq .setLOD button").prop("disabled", false);
+  $("#nav-sp .setLOD button").prop("disabled", false);
+  renderBufferedElement();
+}
+
+// 並べ替え（D&D）
+function setupDragAndDrop(){
+  const tbody = document.querySelector('.displayTable');
+  if (!tbody) return;
+  tbody.addEventListener('dragstart', (e) => {
+    const tr = e.target.closest('tr');
+    if (!tr) return;
+    e.dataTransfer.setData('text/plain', tr.dataset.index);
+    e.dataTransfer.effectAllowed = 'move';
+  });
+  tbody.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  });
+  tbody.addEventListener('drop', (e) => {
+    e.preventDefault();
+    const src = parseInt(e.dataTransfer.getData('text/plain'));
+    const tr = e.target.closest('tr');
+    if (!tr) return;
+    const dst = parseInt(tr.dataset.index);
+    if (isNaN(src) || isNaN(dst) || src === dst) return;
+    const row = elements.splice(src, 1)[0];
+    elements.splice(dst, 0, row);
+    renderElements();
+    updateTSS();
+  });
+}
+
+// 既存buffer配列に依存せず、行の得点を計算
+function computeElementResult(parts){
+  const local = JSON.parse(JSON.stringify(parts));
+  let sumBVForScore = 0.0;
+  const bvForGOEList = [];
+  for (let i = 0; i < local.length; i++){
+    const p = local[i];
+    if (p.invalid === true){
+      p.bv = 0.0;
+    } else if (p.type === 'jump'){
+      const lodInt = parseInt(p.lod);
+      if (p.dg === true && lodInt !== 0){
+        p.bv = basevalues[p.name][lodInt - 1];
+      } else {
+        p.bv = basevalues[p.name][p.lod];
+      }
+    } else if (p.type === 'seq'){
+      p.bv = basevalues[p.name][p.lod];
+    } else { // spin
+      if (p.cof === true){
+        p.bv = basevalues[p.name]["C" + p.lod];
+      } else if (p.fly === true){
+        p.bv = basevalues[p.name]["F" + p.lod];
+      } else {
+        p.bv = basevalues[p.name][p.lod];
+      }
+    }
+
+    // score用係数
+    p.bvForScoreCalculation = p.bv;
+    if (local[0].bonus === true){ p.bvForScoreCalculation *= 1.1; }
+    if (p.rep === true){ p.bvForScoreCalculation *= 0.7; }
+    if (p.ur === true && p.edge === true){ p.bvForScoreCalculation *= 0.6; }
+    else if (p.spinV === true){ p.bvForScoreCalculation *= 0.75; }
+    else if (p.ur === true || p.edge === true){ p.bvForScoreCalculation *= 0.8; }
+    sumBVForScore += p.bvForScoreCalculation;
+
+    // GOE用係数
+    if (p.name !== 'ChSq'){
+      if (p.ur === true && p.edge === true){ p.bvForGOECalculation = p.bv * 0.6; }
+      else if (p.spinV === true){ p.bvForGOECalculation = p.bv * 0.75; }
+      else if (p.ur === true || p.edge === true){ p.bvForGOECalculation = p.bv * 0.8; }
+      else { p.bvForGOECalculation = p.bv; }
+    } else {
+      p.bvForGOECalculation = p.bv;
+    }
+    p.bvForGOECalculation = Math.round(p.bvForGOECalculation * 1000 / 10) / 100;
+    bvForGOEList.push(p.bvForGOECalculation);
+  }
+
+  let goe = parseInt(local[0].goe || 0);
+  let goeValue = 0.0;
+  if (local[0].name === 'ChSq'){
+    goeValue = goe * 0.5;
+  } else {
+    if (goe !== 0){
+      goeValue = Math.max(...bvForGOEList) * (goe * 0.1);
+    }
+  }
+  goeValue = Math.round(goeValue * 1000 / 10) / 100;
+
+  const totalBV = Math.round(sumBVForScore * 1000 / 10) / 100;
+  const totalScore = Math.round((sumBVForScore + goeValue) * 1000 / 10) / 100;
+  return { totalBV, goe, goeValue, totalScore };
+}
+
+// 表示用文字列の生成（DOMに依存しない）
+function getElementDisplayText(parts){
+  let out = "";
+  for (let i = 0; i < parts.length; i++){
+    const p = parts[i];
+    if (p.type === "jump"){
+      if (p.lod != null && p.lod != 0){ out += String(p.lod); }
+      if (p.name !== null){ out += p.name; }
+      if (p.edge){ out += "e"; }
+      if (p.ur){ out += "<"; }
+      if (p.dg){ out += "<<"; }
+      if (p.invalid){ out += "*"; }
+      if (p.rep){ out += "+REP"; }
+    } else if (p.type === "spin"){
+      if (p.fly){ out += "F"; }
+      if (p.cof){ out += "C"; }
+      if (p.name !== null){ out += p.name; }
+      if (p.lod != null && p.lod != 0){ out += String(p.lod); }
+      if (p.spinV){ out += "V"; }
+      if (p.invalid){ out += "*"; }
+    } else { // seq
+      if (p.name !== null){ out += p.name; }
+      if (p.lod != null && p.lod != 0){ out += String(p.lod); }
+      if (p.invalid){ out += "*"; }
+    }
+    if (i !== parts.length - 1){ out += "+"; }
+  }
+  if (parts[0]?.bonus){ out += "  x"; }
+  return out;
+}
+
+// 削除（委譲）
+function onDeleteRow(){
+  const idx = parseInt($(this).closest('tr').data('index'));
+  if (!isNaN(idx)){
+    elements.splice(idx, 1);
+    renderElements();
+    updateTSS();
+  }
 }
