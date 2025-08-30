@@ -416,11 +416,15 @@
       const tab = currentTab();
       const parts = deepClone(state.buffer);
       if (tab==='jump'){
+        // 選択されたジャンプ種別がなければバッファを変更せず返す
+        const selectedType = document.querySelector('input[name="type"]:checked');
+        if (!selectedType) return parts;
+
         // reflect UI to buffer[buffer.length-1]
         const p = parts[parts.length-1];
         p.type = 'jump';
         p.lod = document.querySelector('input[name="rot"]:checked')?.value || '0';
-        p.name = document.querySelector('input[name="type"]:checked')?.value || null;
+        p.name = selectedType.value;
         p.ur = document.getElementById('flagUR').checked;
         p.dg = document.getElementById('flagDG').checked;
         p.edge = document.getElementById('flagE').checked;
