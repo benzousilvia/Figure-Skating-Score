@@ -35,7 +35,7 @@
       const preview = document.getElementById('elemPreview');
       const chips = document.getElementById('chips');
       const goeValue = document.getElementById('goeValue');
-      const goeSlider = document.getElementById('goe');
+      // GOEはラジオボタン形式に変更
       // PCS スライダーと表示バッジ
       const pcsCo = document.getElementById('pcs-co');
       const pcsCoVal = document.getElementById('pcs-co-val');
@@ -62,8 +62,9 @@
       }
 
       document.body.addEventListener('change', (e)=>{
-        if (e.target === goeSlider){
-          goeValue.textContent = (goeSlider.value>0?'+':'') + goeSlider.value;
+        if (e.target.matches('input[name="goe"]')){
+          const goeVal = parseInt(e.target.value) || 0;
+          goeValue.textContent = (goeVal>0?'+':'') + goeVal;
         }
       });
       goeValue.textContent = '+0';
@@ -170,9 +171,39 @@
                       <div class="text-secondary small">GOE</div>
                       <div class="badge text-bg-dark" id="goeValue">+0</div>
                     </div>
-                    <input type="range" class="form-range" min="-5" max="5" step="1" value="0" id="goe">
-                    <div class="goe-scale">
-                      <span>-5</span><span>-3</span><span>-1</span><span>0</span><span>+1</span><span>+3</span><span>+5</span>
+                    <div class="btn-group btn-group-sm" role="group" aria-label="GOE選択">
+                      <input type="radio" class="btn-check" name="goe" value="-5" id="goe-5">
+                      <label class="btn btn-outline-danger" for="goe-5">-5</label>
+                      
+                      <input type="radio" class="btn-check" name="goe" value="-4" id="goe-4">
+                      <label class="btn btn-outline-danger" for="goe-4">-4</label>
+                      
+                      <input type="radio" class="btn-check" name="goe" value="-3" id="goe-3">
+                      <label class="btn btn-outline-danger" for="goe-3">-3</label>
+                      
+                      <input type="radio" class="btn-check" name="goe" value="-2" id="goe-2">
+                      <label class="btn btn-outline-danger" for="goe-2">-2</label>
+                      
+                      <input type="radio" class="btn-check" name="goe" value="-1" id="goe-1">
+                      <label class="btn btn-outline-danger" for="goe-1">-1</label>
+                      
+                      <input type="radio" class="btn-check" name="goe" value="0" id="goe0" checked>
+                      <label class="btn btn-outline-secondary" for="goe0">0</label>
+                      
+                      <input type="radio" class="btn-check" name="goe" value="1" id="goe1">
+                      <label class="btn btn-outline-success" for="goe1">+1</label>
+                      
+                      <input type="radio" class="btn-check" name="goe" value="2" id="goe2">
+                      <label class="btn btn-outline-success" for="goe2">+2</label>
+                      
+                      <input type="radio" class="btn-check" name="goe" value="3" id="goe3">
+                      <label class="btn btn-outline-success" for="goe3">+3</label>
+                      
+                      <input type="radio" class="btn-check" name="goe" value="4" id="goe4">
+                      <label class="btn btn-outline-success" for="goe4">+4</label>
+                      
+                      <input type="radio" class="btn-check" name="goe" value="5" id="goe5">
+                      <label class="btn btn-outline-success" for="goe5">+5</label>
                     </div>
                   </div>
                 </div>
@@ -360,7 +391,7 @@
     <div class="offcanvas-body">
       <ul>
         <li>ジャンプ種類選択後、利用可能な回転数のみが有効になります。</li>
-        <li>GOEはスライダーで素早く調整できます。</li>
+        <li>GOEはボタンクリックで素早く選択できます。</li>
         <li>要素一覧はドラッグで並べ替えできます。</li>
       </ul>
     </div>
@@ -431,7 +462,7 @@
         p.rep = document.getElementById('flagREP').checked;
         p.invalid = document.getElementById('flagINV').checked;
         parts[0].bonus = document.getElementById('bonus').checked;
-        parts[0].goe = parseInt(document.getElementById('goe').value)||0;
+        parts[0].goe = parseInt(document.querySelector('input[name="goe"]:checked')?.value)||0;
       } else if (tab==='spin'){
         const p = newPart();
         p.type='spin';
@@ -443,7 +474,7 @@
         p.spinV = document.getElementById('spV').checked;
         p.invalid = document.getElementById('spINV').checked;
         parts.length = 0; parts.push(p);
-        parts[0].goe = parseInt(document.getElementById('goe').value)||0;
+        parts[0].goe = parseInt(document.querySelector('input[name="goe"]:checked')?.value)||0;
       } else {
         const p = newPart();
         p.type='seq';
@@ -452,7 +483,7 @@
         p.lod = lev || '0';
         p.invalid = document.getElementById('sqINV').checked;
         parts.length = 0; parts.push(p);
-        parts[0].goe = parseInt(document.getElementById('goe').value)||0;
+        parts[0].goe = parseInt(document.querySelector('input[name="goe"]:checked')?.value)||0;
       }
       return parts;
     }
@@ -560,7 +591,7 @@
       }
       
       // GOE値は常に更新
-      const g = parseInt(document.getElementById('goe').value)||0;
+      const g = parseInt(document.querySelector('input[name="goe"]:checked')?.value)||0;
       document.getElementById('goeValue').textContent = (g>0?'+':'')+g;
     }
 
@@ -663,7 +694,7 @@
       newJump.rep = document.getElementById('flagREP').checked;
       newJump.invalid = document.getElementById('flagINV').checked;
       newJump.bonus = document.getElementById('bonus').checked;
-      newJump.goe = parseInt(document.getElementById('goe').value)||0;
+      newJump.goe = parseInt(document.querySelector('input[name="goe"]:checked')?.value)||0;
       
       // 有効なジャンプのみバッファに追加
       if (newJump.name) {
@@ -696,7 +727,7 @@
       document.getElementById('elemPreview').textContent = '要素';
       document.getElementById('chips').innerHTML = '';
       // GOE値のみ更新
-      const g = parseInt(document.getElementById('goe').value)||0;
+      const g = parseInt(document.querySelector('input[name="goe"]:checked')?.value)||0;
       document.getElementById('goeValue').textContent = (g>0?'+':'')+g;
     }
 
@@ -746,7 +777,8 @@
         document.getElementById('flagREP').checked = !!last.rep;
         document.getElementById('flagINV').checked = !!last.invalid;
         document.getElementById('bonus').checked = !!first.bonus;
-        document.getElementById('goe').value = String(first.goe || 0);
+        const goeRadio = document.querySelector(`input[name="goe"][value="${first.goe || 0}"]`);
+        if (goeRadio) goeRadio.checked = true;
         updateRotationButtons();
         
         // 編集時のプレビュー表示（連続ジャンプの場合のみ）
@@ -770,7 +802,8 @@
         document.getElementById('spC').checked = !!p.cof;
         document.getElementById('spV').checked = !!p.spinV;
         document.getElementById('spINV').checked = !!p.invalid;
-        document.getElementById('goe').value = String(p.goe || 0);
+        const goeRadio = document.querySelector(`input[name="goe"][value="${p.goe || 0}"]`);
+        if (goeRadio) goeRadio.checked = true;
         // プレビューなし（スピンは元々プレビュー機能が限定的）
       } else if (first.type==='seq'){
         state.isComboMode = false;
@@ -780,7 +813,8 @@
         else document.getElementById('sqChSq').checked = true;
         const lev = document.getElementById('sq'+first.lod); if (lev) lev.checked = true;
         document.getElementById('sqINV').checked = !!first.invalid;
-        document.getElementById('goe').value = String(first.goe || 0);
+        const goeRadio = document.querySelector(`input[name="goe"][value="${first.goe || 0}"]`);
+        if (goeRadio) goeRadio.checked = true;
         // プレビューなし
       }
     }
@@ -791,9 +825,12 @@
       // rotation availability
       document.querySelectorAll('input[name="type"]').forEach(r=> r.addEventListener('change', updateRotationButtons));
       document.querySelectorAll('input[name="rot"]').forEach(r=> r.addEventListener('change', updateRotationButtons));
-      document.getElementById('goe').addEventListener('input', ()=>{
-        const g = parseInt(document.getElementById('goe').value)||0;
-        document.getElementById('goeValue').textContent = (g>0?'+':'')+g;
+      // GOE ラジオボタンのイベントリスナー
+      document.querySelectorAll('input[name="goe"]').forEach(radio => {
+        radio.addEventListener('change', ()=>{
+          const g = parseInt(document.querySelector('input[name="goe"]:checked')?.value)||0;
+          document.getElementById('goeValue').textContent = (g>0?'+':'')+g;
+        });
       });
 
       // スピンとシーケンスはプレビュー機能を使用しない
