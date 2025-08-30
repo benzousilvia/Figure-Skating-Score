@@ -697,38 +697,20 @@
     }
 
     function finalizeElementFromCurrentTab(){
-      let parts;
-      
-      const validBufferParts = state.buffer.filter(isRenderablePart);
-      
-      if (validBufferParts.length > 0) {
-        // プレビュー欄にジャンプが表示されている場合: バッファの内容を使用
-        parts = state.buffer.slice(); // バッファをコピー
-      } else {
-        // プレビュー欄が空の場合: 現在のUI選択から単独ジャンプを作成
-        const singleJump = newPart();
-        singleJump.type = 'jump';
-        singleJump.lod = document.querySelector('input[name="rot"]:checked')?.value || '0';
-        singleJump.name = document.querySelector('input[name="type"]:checked')?.value || null;
-        singleJump.ur = document.getElementById('flagUR').checked;
-        singleJump.dg = document.getElementById('flagDG').checked;
-        singleJump.edge = document.getElementById('flagE').checked;
-        singleJump.rep = document.getElementById('flagREP').checked;
-        singleJump.invalid = document.getElementById('flagINV').checked;
-        singleJump.bonus = document.getElementById('bonus').checked;
-        singleJump.goe = parseInt(document.getElementById('goe').value)||0;
-        parts = [singleJump];
-      }
-      
-      if (!parts[0].type || !parts[0].name) return;
-      
+      // 現在のタブ状態から要素パーツを構築（ジャンプ/スピン/シーケンス対応）
+      const parts = buildBufferedParts();
+
+      // パーツが有効か検証
+      if (!parts[0] || !isRenderablePart(parts[0])) return;
+
+      // 編集中なら差し替え、そうでなければ追加
       if (state.editingIndex != null) {
         state.elements[state.editingIndex] = parts;
         state.editingIndex = null;
       } else {
         state.elements.push(parts);
       }
-      
+
       renderElements();
       clearEntry();
     }
