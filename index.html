@@ -66,6 +66,14 @@
           const goeVal = parseInt(e.target.value) || 0;
           goeValue.textContent = (goeVal>0?'+':'') + goeVal;
         }
+        if (e.target.matches('input[name="goe-spin"]')){
+          const goeVal = parseInt(e.target.value) || 0;
+          document.getElementById('goeValue-spin').textContent = (goeVal>0?'+':'') + goeVal;
+        }
+        if (e.target.matches('input[name="goe-seq"]')){
+          const goeVal = parseInt(e.target.value) || 0;
+          document.getElementById('goeValue-seq').textContent = (goeVal>0?'+':'') + goeVal;
+        }
       });
       goeValue.textContent = '+0';
 
@@ -248,6 +256,48 @@
                   <input class="btn-check" type="radio" name="lev" id="lev3"><label class="btn btn-outline-info" for="lev3">3</label>
                   <input class="btn-check" type="radio" name="lev" id="lev4"><label class="btn btn-outline-info" for="lev4">4</label>
                 </div>
+                
+                <div class="mt-3">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-secondary small">GOE</div>
+                    <div class="badge text-bg-dark" id="goeValue-spin">+0</div>
+                  </div>
+                  <div class="btn-group btn-group-sm" role="group" aria-label="GOE選択">
+                    <input type="radio" class="btn-check" name="goe-spin" value="-5" id="goe-spin-5">
+                    <label class="btn btn-outline-danger" for="goe-spin-5">-5</label>
+                    
+                    <input type="radio" class="btn-check" name="goe-spin" value="-4" id="goe-spin-4">
+                    <label class="btn btn-outline-danger" for="goe-spin-4">-4</label>
+                    
+                    <input type="radio" class="btn-check" name="goe-spin" value="-3" id="goe-spin-3">
+                    <label class="btn btn-outline-danger" for="goe-spin-3">-3</label>
+                    
+                    <input type="radio" class="btn-check" name="goe-spin" value="-2" id="goe-spin-2">
+                    <label class="btn btn-outline-danger" for="goe-spin-2">-2</label>
+                    
+                    <input type="radio" class="btn-check" name="goe-spin" value="-1" id="goe-spin-1">
+                    <label class="btn btn-outline-danger" for="goe-spin-1">-1</label>
+                    
+                    <input type="radio" class="btn-check" name="goe-spin" value="0" id="goe-spin0" checked>
+                    <label class="btn btn-outline-secondary" for="goe-spin0">0</label>
+                    
+                    <input type="radio" class="btn-check" name="goe-spin" value="1" id="goe-spin1">
+                    <label class="btn btn-outline-success" for="goe-spin1">+1</label>
+                    
+                    <input type="radio" class="btn-check" name="goe-spin" value="2" id="goe-spin2">
+                    <label class="btn btn-outline-success" for="goe-spin2">+2</label>
+                    
+                    <input type="radio" class="btn-check" name="goe-spin" value="3" id="goe-spin3">
+                    <label class="btn btn-outline-success" for="goe-spin3">+3</label>
+                    
+                    <input type="radio" class="btn-check" name="goe-spin" value="4" id="goe-spin4">
+                    <label class="btn btn-outline-success" for="goe-spin4">+4</label>
+                    
+                    <input type="radio" class="btn-check" name="goe-spin" value="5" id="goe-spin5">
+                    <label class="btn btn-outline-success" for="goe-spin5">+5</label>
+                  </div>
+                </div>
+                
                 <div class="d-flex justify-content-between mt-3">
                   <div></div>
                   <div class="btn-group">
@@ -276,6 +326,48 @@
                 <div class="d-flex flex-wrap gap-2 mb-2">
                   <input class="btn-check" id="sqINV" type="checkbox"><label class="btn btn-outline-secondary btn-sm" for="sqINV">*</label>
                 </div>
+                
+                <div class="mt-3">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-secondary small">GOE</div>
+                    <div class="badge text-bg-dark" id="goeValue-seq">+0</div>
+                  </div>
+                  <div class="btn-group btn-group-sm" role="group" aria-label="GOE選択">
+                    <input type="radio" class="btn-check" name="goe-seq" value="-5" id="goe-seq-5">
+                    <label class="btn btn-outline-danger" for="goe-seq-5">-5</label>
+                    
+                    <input type="radio" class="btn-check" name="goe-seq" value="-4" id="goe-seq-4">
+                    <label class="btn btn-outline-danger" for="goe-seq-4">-4</label>
+                    
+                    <input type="radio" class="btn-check" name="goe-seq" value="-3" id="goe-seq-3">
+                    <label class="btn btn-outline-danger" for="goe-seq-3">-3</label>
+                    
+                    <input type="radio" class="btn-check" name="goe-seq" value="-2" id="goe-seq-2">
+                    <label class="btn btn-outline-danger" for="goe-seq-2">-2</label>
+                    
+                    <input type="radio" class="btn-check" name="goe-seq" value="-1" id="goe-seq-1">
+                    <label class="btn btn-outline-danger" for="goe-seq-1">-1</label>
+                    
+                    <input type="radio" class="btn-check" name="goe-seq" value="0" id="goe-seq0" checked>
+                    <label class="btn btn-outline-secondary" for="goe-seq0">0</label>
+                    
+                    <input type="radio" class="btn-check" name="goe-seq" value="1" id="goe-seq1">
+                    <label class="btn btn-outline-success" for="goe-seq1">+1</label>
+                    
+                    <input type="radio" class="btn-check" name="goe-seq" value="2" id="goe-seq2">
+                    <label class="btn btn-outline-success" for="goe-seq2">+2</label>
+                    
+                    <input type="radio" class="btn-check" name="goe-seq" value="3" id="goe-seq3">
+                    <label class="btn btn-outline-success" for="goe-seq3">+3</label>
+                    
+                    <input type="radio" class="btn-check" name="goe-seq" value="4" id="goe-seq4">
+                    <label class="btn btn-outline-success" for="goe-seq4">+4</label>
+                    
+                    <input type="radio" class="btn-check" name="goe-seq" value="5" id="goe-seq5">
+                    <label class="btn btn-outline-success" for="goe-seq5">+5</label>
+                  </div>
+                </div>
+                
                 <div class="d-flex justify-content-between mt-1">
                   <div></div>
                   <div class="btn-group">
@@ -474,7 +566,7 @@
         p.spinV = document.getElementById('spV').checked;
         p.invalid = document.getElementById('spINV').checked;
         parts.length = 0; parts.push(p);
-        parts[0].goe = parseInt(document.querySelector('input[name="goe"]:checked')?.value)||0;
+        parts[0].goe = parseInt(document.querySelector('input[name="goe-spin"]:checked')?.value)||0;
       } else {
         const p = newPart();
         p.type='seq';
@@ -483,7 +575,7 @@
         p.lod = lev || '0';
         p.invalid = document.getElementById('sqINV').checked;
         parts.length = 0; parts.push(p);
-        parts[0].goe = parseInt(document.querySelector('input[name="goe"]:checked')?.value)||0;
+        parts[0].goe = parseInt(document.querySelector('input[name="goe-seq"]:checked')?.value)||0;
       }
       return parts;
     }
@@ -802,7 +894,7 @@
         document.getElementById('spC').checked = !!p.cof;
         document.getElementById('spV').checked = !!p.spinV;
         document.getElementById('spINV').checked = !!p.invalid;
-        const goeRadio = document.querySelector(`input[name="goe"][value="${p.goe || 0}"]`);
+        const goeRadio = document.querySelector(`input[name="goe-spin"][value="${p.goe || 0}"]`);
         if (goeRadio) goeRadio.checked = true;
         // プレビューなし（スピンは元々プレビュー機能が限定的）
       } else if (first.type==='seq'){
@@ -813,7 +905,7 @@
         else document.getElementById('sqChSq').checked = true;
         const lev = document.getElementById('sq'+first.lod); if (lev) lev.checked = true;
         document.getElementById('sqINV').checked = !!first.invalid;
-        const goeRadio = document.querySelector(`input[name="goe"][value="${first.goe || 0}"]`);
+        const goeRadio = document.querySelector(`input[name="goe-seq"][value="${first.goe || 0}"]`);
         if (goeRadio) goeRadio.checked = true;
         // プレビューなし
       }
@@ -825,11 +917,27 @@
       // rotation availability
       document.querySelectorAll('input[name="type"]').forEach(r=> r.addEventListener('change', updateRotationButtons));
       document.querySelectorAll('input[name="rot"]').forEach(r=> r.addEventListener('change', updateRotationButtons));
-      // GOE ラジオボタンのイベントリスナー
+      // GOE ラジオボタンのイベントリスナー（ジャンプ）
       document.querySelectorAll('input[name="goe"]').forEach(radio => {
         radio.addEventListener('change', ()=>{
           const g = parseInt(document.querySelector('input[name="goe"]:checked')?.value)||0;
           document.getElementById('goeValue').textContent = (g>0?'+':'')+g;
+        });
+      });
+      
+      // GOE ラジオボタンのイベントリスナー（スピン）
+      document.querySelectorAll('input[name="goe-spin"]').forEach(radio => {
+        radio.addEventListener('change', ()=>{
+          const g = parseInt(document.querySelector('input[name="goe-spin"]:checked')?.value)||0;
+          document.getElementById('goeValue-spin').textContent = (g>0?'+':'')+g;
+        });
+      });
+      
+      // GOE ラジオボタンのイベントリスナー（シークエンス）
+      document.querySelectorAll('input[name="goe-seq"]').forEach(radio => {
+        radio.addEventListener('change', ()=>{
+          const g = parseInt(document.querySelector('input[name="goe-seq"]:checked')?.value)||0;
+          document.getElementById('goeValue-seq').textContent = (g>0?'+':'')+g;
         });
       });
 
@@ -852,6 +960,8 @@
       document.getElementById('elemPreview').textContent = '要素';
       document.getElementById('chips').innerHTML = '';
       document.getElementById('goeValue').textContent = '+0';
+      document.getElementById('goeValue-spin').textContent = '+0';
+      document.getElementById('goeValue-seq').textContent = '+0';
       updatePCSBadges();
     })();
   </script>
