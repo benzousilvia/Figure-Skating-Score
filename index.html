@@ -34,7 +34,6 @@
     document.addEventListener('DOMContentLoaded', () => {
       const preview = document.getElementById('elemPreview');
       const chips = document.getElementById('chips');
-      const goeValue = document.getElementById('goeValue');
       // GOEはラジオボタン形式に変更
       // PCS スライダーと表示バッジ
       const pcsCo = document.getElementById('pcs-co');
@@ -49,7 +48,7 @@
         const type = document.querySelector('input[name="type"]:checked')?.value || '';
         const flags = Array.from(document.querySelectorAll('input[name="flag"]:checked')).map(i=>i.value);
         const rep = flags.includes('REP') ? '+REP' : '';
-        const suf = [flags.includes('e')?'e':'', flags.includes('UR')?'\u003c':'', flags.includes('DG')?'\u003c\u003c':'', flags.includes('*')?'*':''].join('');
+        const suf = [flags.includes('!')?'!':'', flags.includes('e')?'e':'', flags.includes('UR')?'\u003c':'', flags.includes('DG')?'\u003c\u003c':'', flags.includes('*')?'*':''].join('');
         const bonus = document.getElementById('bonus').checked ? ' x' : '';
         const txt = (rot!=='0'?rot:'') + type + suf + (rep?rep:'') + bonus;
         preview.textContent = txt || '要素';
@@ -61,21 +60,7 @@
         if (document.getElementById('bonus').checked) chips.insertAdjacentHTML('beforeend', `<span class="chip">x</span>`);
       }
 
-      document.body.addEventListener('change', (e)=>{
-        if (e.target.matches('input[name="goe"]')){
-          const goeVal = parseInt(e.target.value) || 0;
-          goeValue.textContent = (goeVal>0?'+':'') + goeVal;
-        }
-        if (e.target.matches('input[name="goe-spin"]')){
-          const goeVal = parseInt(e.target.value) || 0;
-          document.getElementById('goeValue-spin').textContent = (goeVal>0?'+':'') + goeVal;
-        }
-        if (e.target.matches('input[name="goe-seq"]')){
-          const goeVal = parseInt(e.target.value) || 0;
-          document.getElementById('goeValue-seq').textContent = (goeVal>0?'+':'') + goeVal;
-        }
-      });
-      goeValue.textContent = '+0';
+      // GOEプレビュー表示は削除済み
 
       // PCS数値の初期表示と更新
       const setBadge = (el, badge) => { if (el && badge) badge.textContent = Number(el.value).toFixed(2); };
@@ -164,6 +149,7 @@
                     <div class="d-flex flex-wrap gap-2">
                       <input class="btn-check" id="flagUR" type="checkbox" name="flag" value="UR"><label class="btn btn-outline-secondary btn-sm" for="flagUR">&lt;</label>
                       <input class="btn-check" id="flagDG" type="checkbox" name="flag" value="DG"><label class="btn btn-outline-secondary btn-sm" for="flagDG">&lt;&lt;</label>
+                      <input class="btn-check" id="flagATT" type="checkbox" name="flag" value="!"><label class="btn btn-outline-warning btn-sm" for="flagATT">!</label>
                       <input class="btn-check" id="flagE"  type="checkbox" name="flag" value="e"><label class="btn btn-outline-secondary btn-sm" for="flagE">e</label>
                       <input class="btn-check" id="flagREP" type="checkbox" name="flag" value="REP"><label class="btn btn-outline-secondary btn-sm" for="flagREP">+REP</label>
                       <input class="btn-check" id="flagINV" type="checkbox" name="flag" value="*"><label class="btn btn-outline-secondary btn-sm" for="flagINV">*</label>
@@ -175,10 +161,7 @@
                     </div>
                   </div>
                   <div class="col-12">
-                    <div class="d-flex justify-content-between align-items-center">
-                      <div class="text-secondary small">GOE</div>
-                      <div class="badge text-bg-dark" id="goeValue">+0</div>
-                    </div>
+                    <div class="text-secondary small mb-1">GOE</div>
                     <div class="btn-group btn-group-sm" role="group" aria-label="GOE選択">
                       <input type="radio" class="btn-check" name="goe" value="-5" id="goe-5">
                       <label class="btn btn-outline-danger" for="goe-5">-5</label>
@@ -258,10 +241,7 @@
                 </div>
                 
                 <div class="mt-3">
-                  <div class="d-flex justify-content-between align-items-center">
-                    <div class="text-secondary small">GOE</div>
-                    <div class="badge text-bg-dark" id="goeValue-spin">+0</div>
-                  </div>
+                  <div class="text-secondary small mb-1">GOE</div>
                   <div class="btn-group btn-group-sm" role="group" aria-label="GOE選択">
                     <input type="radio" class="btn-check" name="goe-spin" value="-5" id="goe-spin-5">
                     <label class="btn btn-outline-danger" for="goe-spin-5">-5</label>
@@ -328,10 +308,7 @@
                 </div>
                 
                 <div class="mt-3">
-                  <div class="d-flex justify-content-between align-items-center">
-                    <div class="text-secondary small">GOE</div>
-                    <div class="badge text-bg-dark" id="goeValue-seq">+0</div>
-                  </div>
+                  <div class="text-secondary small mb-1">GOE</div>
                   <div class="btn-group btn-group-sm" role="group" aria-label="GOE選択">
                     <input type="radio" class="btn-check" name="goe-seq" value="-5" id="goe-seq-5">
                     <label class="btn btn-outline-danger" for="goe-seq-5">-5</label>
@@ -503,7 +480,7 @@
     };
 
     function newPart(){
-      return { type:null, name:null, lod:'0', ur:false, dg:false, edge:false, rep:false, spinV:false, fly:false, cof:false, invalid:false, bonus:false, goe:0 };
+      return { type:null, name:null, lod:'0', ur:false, dg:false, attention:false, edge:false, rep:false, spinV:false, fly:false, cof:false, invalid:false, bonus:false, goe:0 };
     }
 
     function deepClone(obj){ return JSON.parse(JSON.stringify(obj)); }
@@ -550,6 +527,7 @@
         p.name = selectedType.value;
         p.ur = document.getElementById('flagUR').checked;
         p.dg = document.getElementById('flagDG').checked;
+        p.attention = document.getElementById('flagATT').checked;
         p.edge = document.getElementById('flagE').checked;
         p.rep = document.getElementById('flagREP').checked;
         p.invalid = document.getElementById('flagINV').checked;
@@ -588,6 +566,7 @@
         if (p.type==='jump'){
           if (p.lod && p.lod!=='0') out += String(p.lod);
           if (p.name) out += p.name;
+          if (p.attention) out += '!';
           if (p.edge) out += 'e';
           if (p.ur) out += '<';
           if (p.dg) out += '<<';
@@ -677,14 +656,12 @@
         if (p0 && p0.type==='jump'){
           if (p0.lod!=='0') chips.insertAdjacentHTML('beforeend', `<span class="chip"><i class="bi bi-arrow-repeat"></i>${p0.lod}回転</span>`);
           if (p0.name) chips.insertAdjacentHTML('beforeend', `<span class="chip"><i class="bi bi-circle"></i>${p0.name}</span>`);
-          ['UR','DG','e','REP','*'].forEach(f=>{ if ((f==='UR'&&p0.ur)||(f==='DG'&&p0.dg)||(f==='e'&&p0.edge)||(f==='REP'&&p0.rep)||(f==='*'&&p0.invalid)) chips.insertAdjacentHTML('beforeend', `<span class="chip">${f}</span>`); });
+          ['UR','DG','!','e','REP','*'].forEach(f=>{ if ((f==='UR'&&p0.ur)||(f==='DG'&&p0.dg)||(f==='!'&&p0.attention)||(f==='e'&&p0.edge)||(f==='REP'&&p0.rep)||(f==='*'&&p0.invalid)) chips.insertAdjacentHTML('beforeend', `<span class="chip">${f}</span>`); });
           if (validParts[0]?.bonus) chips.insertAdjacentHTML('beforeend', `<span class="chip">x</span>`);
         }
       }
       
-      // GOE値は常に更新
-      const g = parseInt(document.querySelector('input[name="goe"]:checked')?.value)||0;
-      document.getElementById('goeValue').textContent = (g>0?'+':'')+g;
+      // GOE値プレビューは削除済み
     }
 
     function renderElements(){
@@ -782,6 +759,7 @@
       newJump.name = document.querySelector('input[name="type"]:checked')?.value || null;
       newJump.ur = document.getElementById('flagUR').checked;
       newJump.dg = document.getElementById('flagDG').checked;
+      newJump.attention = document.getElementById('flagATT').checked;
       newJump.edge = document.getElementById('flagE').checked;
       newJump.rep = document.getElementById('flagREP').checked;
       newJump.invalid = document.getElementById('flagINV').checked;
@@ -818,9 +796,7 @@
       // プレビュー欄を空欄に設定
       document.getElementById('elemPreview').textContent = '要素';
       document.getElementById('chips').innerHTML = '';
-      // GOE値のみ更新
-      const g = parseInt(document.querySelector('input[name="goe"]:checked')?.value)||0;
-      document.getElementById('goeValue').textContent = (g>0?'+':'')+g;
+      // GOE値プレビューは削除済み
     }
 
     function finalizeElementFromCurrentTab(){
@@ -865,6 +841,7 @@
         if (last.name) { const id = 't'+last.name; const t = document.getElementById(id); if (t) t.checked = true; }
         document.getElementById('flagUR').checked = !!last.ur;
         document.getElementById('flagDG').checked = !!last.dg;
+        document.getElementById('flagATT').checked = !!last.attention;
         document.getElementById('flagE').checked = !!last.edge;
         document.getElementById('flagREP').checked = !!last.rep;
         document.getElementById('flagINV').checked = !!last.invalid;
@@ -917,29 +894,7 @@
       // rotation availability
       document.querySelectorAll('input[name="type"]').forEach(r=> r.addEventListener('change', updateRotationButtons));
       document.querySelectorAll('input[name="rot"]').forEach(r=> r.addEventListener('change', updateRotationButtons));
-      // GOE ラジオボタンのイベントリスナー（ジャンプ）
-      document.querySelectorAll('input[name="goe"]').forEach(radio => {
-        radio.addEventListener('change', ()=>{
-          const g = parseInt(document.querySelector('input[name="goe"]:checked')?.value)||0;
-          document.getElementById('goeValue').textContent = (g>0?'+':'')+g;
-        });
-      });
-      
-      // GOE ラジオボタンのイベントリスナー（スピン）
-      document.querySelectorAll('input[name="goe-spin"]').forEach(radio => {
-        radio.addEventListener('change', ()=>{
-          const g = parseInt(document.querySelector('input[name="goe-spin"]:checked')?.value)||0;
-          document.getElementById('goeValue-spin').textContent = (g>0?'+':'')+g;
-        });
-      });
-      
-      // GOE ラジオボタンのイベントリスナー（シークエンス）
-      document.querySelectorAll('input[name="goe-seq"]').forEach(radio => {
-        radio.addEventListener('change', ()=>{
-          const g = parseInt(document.querySelector('input[name="goe-seq"]:checked')?.value)||0;
-          document.getElementById('goeValue-seq').textContent = (g>0?'+':'')+g;
-        });
-      });
+      // GOEプレビュー表示のイベントリスナーは削除済み
 
       // スピンとシーケンスはプレビュー機能を使用しない
 
@@ -959,9 +914,7 @@
       // 初期状態はプレビュー欄を空欄に設定
       document.getElementById('elemPreview').textContent = '要素';
       document.getElementById('chips').innerHTML = '';
-      document.getElementById('goeValue').textContent = '+0';
-      document.getElementById('goeValue-spin').textContent = '+0';
-      document.getElementById('goeValue-seq').textContent = '+0';
+      // GOEプレビュー表示は削除済み
       updatePCSBadges();
     })();
   </script>
