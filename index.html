@@ -44,20 +44,60 @@
       const pcsSsVal = document.getElementById('pcs-ss-val');
 
       function updatePreview(){
-        const rot = document.querySelector('input[name="rot"]:checked')?.value || '0';
-        const type = document.querySelector('input[name="type"]:checked')?.value || '';
-        const flags = Array.from(document.querySelectorAll('input[name="flag"]:checked')).map(i=>i.value);
-        const rep = flags.includes('REP') ? '+REP' : '';
-        const suf = [flags.includes('!')?'!':'', flags.includes('e')?'e':'', flags.includes('UR')?'\u003c':'', flags.includes('DG')?'\u003c\u003c':'', flags.includes('*')?'*':''].join('');
-        const bonus = document.getElementById('bonus').checked ? ' x' : '';
-        const txt = (rot!=='0'?rot:'') + type + suf + (rep?rep:'') + bonus;
-        preview.textContent = txt || '要素';
+        const active = document.querySelector('.tab-pane.active')?.id;
         chips.innerHTML = '';
-        if (rot!=='0') chips.insertAdjacentHTML('beforeend', `<span class="chip"><i class="bi bi-arrow-repeat"></i>${rot}回転</span>`);
-        if (type) chips.insertAdjacentHTML('beforeend', `<span class="chip"><i class="bi bi-circle"></i>${type}</span>`);
-        flags.forEach(f=> chips.insertAdjacentHTML('beforeend', `<span class="chip">${f}</span>`));
-        if (document.getElementById('spinV').checked) chips.insertAdjacentHTML('beforeend', `<span class="chip">V</span>`);
-        if (document.getElementById('bonus').checked) chips.insertAdjacentHTML('beforeend', `<span class="chip">x</span>`);
+        if (active === 'pane-jmp') {
+          const rot = document.querySelector('input[name="rot"]:checked')?.value || '0';
+          const type = document.querySelector('input[name="type"]:checked')?.value || '';
+          const flags = Array.from(document.querySelectorAll('input[name="flag"]:checked')).map(i=>i.value);
+          const rep = flags.includes('REP') ? '+REP' : '';
+          const suf = [flags.includes('!')?'!':'', flags.includes('e')?'e':'', flags.includes('UR')?'\u003c':'', flags.includes('DG')?'\u003c\u003c':'', flags.includes('*')?'*':''].join('');
+          const bonus = document.getElementById('bonus').checked ? ' x' : '';
+          const txt = (rot!=='0'?rot:'') + type + suf + (rep?rep:'') + bonus;
+          preview.textContent = txt || '要素';
+          if (rot!=='0') chips.insertAdjacentHTML('beforeend', `<span class="chip"><i class="bi bi-arrow-repeat"></i>${rot}回転</span>`);
+          if (type) chips.insertAdjacentHTML('beforeend', `<span class="chip"><i class="bi bi-circle"></i>${type}</span>`);
+          flags.forEach(f=> chips.insertAdjacentHTML('beforeend', `<span class="chip">${f}</span>`));
+          if (document.getElementById('spinV').checked) chips.insertAdjacentHTML('beforeend', `<span class="chip">V</span>`);
+          if (document.getElementById('bonus').checked) chips.insertAdjacentHTML('beforeend', `<span class="chip">x</span>`);
+          return;
+        }
+
+        if (active === 'pane-spin') {
+          const sp = document.querySelector('input[name="sp"]:checked');
+          const spType = sp ? document.querySelector(`label[for="${sp.id}"]`)?.textContent || '' : '';
+          const f = document.getElementById('spF').checked;
+          const c = document.getElementById('spC').checked;
+          const v = document.getElementById('spV').checked;
+          const inv = document.getElementById('spINV').checked;
+          const levRadio = document.querySelector('input[name="lev"]:checked');
+          const lev = levRadio ? document.querySelector(`label[for="${levRadio.id}"]`)?.textContent || '' : '';
+          const txt = `${f?'F':''}${c?'C':''}${spType}${v?'V':''}${lev}${inv?'*':''}`;
+          preview.textContent = txt || '要素';
+          if (spType) chips.insertAdjacentHTML('beforeend', `<span class="chip">${spType}</span>`);
+          if (f) chips.insertAdjacentHTML('beforeend', `<span class="chip">F</span>`);
+          if (c) chips.insertAdjacentHTML('beforeend', `<span class="chip">C</span>`);
+          if (v) chips.insertAdjacentHTML('beforeend', `<span class="chip">V</span>`);
+          if (lev) chips.insertAdjacentHTML('beforeend', `<span class="chip">Lv${lev}</span>`);
+          if (inv) chips.insertAdjacentHTML('beforeend', `<span class="chip">*</span>`);
+          return;
+        }
+
+        if (active === 'pane-seq') {
+          const sq = document.querySelector('input[name="sq"]:checked');
+          const sqType = sq ? document.querySelector(`label[for="${sq.id}"]`)?.textContent || '' : '';
+          const levRadio = document.querySelector('input[name="sqlev"]:checked');
+          const lev = levRadio ? document.querySelector(`label[for="${levRadio.id}"]`)?.textContent || '' : '';
+          const inv = document.getElementById('sqINV').checked;
+          const txt = `${sqType}${lev}${inv?'*':''}`;
+          preview.textContent = txt || '要素';
+          if (sqType) chips.insertAdjacentHTML('beforeend', `<span class="chip">${sqType}</span>`);
+          if (lev) chips.insertAdjacentHTML('beforeend', `<span class="chip">Lv${lev}</span>`);
+          if (inv) chips.insertAdjacentHTML('beforeend', `<span class="chip">*</span>`);
+          return;
+        }
+
+        preview.textContent = '要素';
       }
 
       // GOEプレビュー表示は削除済み
@@ -75,6 +115,13 @@
         if (!el || !badge) return;
         el.addEventListener('input', () => setBadge(el, badge));
       });
+
+      document.querySelectorAll('#pane-jmp input, #pane-spin input, #pane-seq input').forEach(el => {
+        el.addEventListener('input', updatePreview);
+        el.addEventListener('change', updatePreview);
+      });
+
+      updatePreview();
     });
   </script>
   <!-- 既存アプリ接続時は、script.js/basevalues.jsへ差し替え可 -->
@@ -100,6 +147,10 @@
           <div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-2">
               <div class="section-title">要素コンポーザ</div>
+            </div>
+            <div class="mt-3 elem-preview d-flex align-items-center justify-content-between">
+              <div id="elemPreview">要素</div>
+              <div id="chips" class="d-flex flex-wrap gap-2"></div>
             </div>
 
             <!-- タブ: ジャンプ/スピン/シークエンス -->
@@ -198,18 +249,13 @@
                   </div>
                 </div>
 
-                <div class="mt-3 elem-preview d-flex align-items-center justify-content-between">
-                  <div id="elemPreview">要素</div>
-                  <div id="chips" class="d-flex flex-wrap gap-2"></div>
-                </div>
-
                 <div class="d-flex justify-content-between mt-3">
                   <button class="btn btn-outline-danger" id="btn-clear-entry"><i class="bi bi-eraser"></i> 入力をクリア</button>
                   <div class="btn-group">
                     <button class="btn btn-outline-primary" id="btn-add-jump"><i class="bi bi-plus-lg"></i> ジャンプ追加</button>
                     <button class="btn btn-primary" id="btn-add-element"><i class="bi bi-check2"></i> 要素を追加</button>
-                  </div>
                 </div>
+              </div>
               </div>
 
               <!-- スピン -->
