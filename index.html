@@ -775,9 +775,11 @@
       document.getElementById('tss').textContent = tss.toFixed(2);
     }
 
-    function resetSelections(){
+    function resetSelections(clearPreview = true){
       document.querySelectorAll('#pane-jmp input, #pane-spin input, #pane-seq input').forEach(el => el.checked = false);
-      document.getElementById('elemPreview').textContent = '要素';
+      if (clearPreview) {
+        document.getElementById('elemPreview').textContent = '要素';
+      }
       updateRotationButtons();
     }
 
@@ -810,7 +812,9 @@
         
         // プレビュー表示を更新
         renderPreview();
-        resetSelections();
+        const preview = document.getElementById('elemPreview');
+        preview.textContent += '+';
+        resetSelections(false);
       }
     }
 
@@ -917,6 +921,12 @@
       document.querySelectorAll('input[name="type"]').forEach(r=> r.addEventListener('change', updateRotationButtons));
       document.querySelectorAll('input[name="rot"]').forEach(r=> r.addEventListener('change', updateRotationButtons));
       // GOEプレビュー表示のイベントリスナーは削除済み
+
+      // ジャンプ入力変更時にプレビュー更新
+      document.querySelectorAll('#pane-jmp input').forEach(el => {
+        el.addEventListener('input', renderPreview);
+        el.addEventListener('change', renderPreview);
+      });
 
       // スピンとシーケンスはプレビュー機能を使用しない
 
