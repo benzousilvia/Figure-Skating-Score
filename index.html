@@ -494,7 +494,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script type="module">
-    import { initSOV, getAvailableRotationsFor, basevalues } from './basevalues.js';
+    import { initSOV, getAvailableRotationsFor, getBase, getScore, basevalues } from './basevalues.js';
 
     const state = {
       buffer: [newPart()],
@@ -506,7 +506,7 @@
     };
 
     function newPart(){
-      return { type:null, name:null, lod:'0', ur:false, dg:false, attention:false, edge:false, rep:false, spinV:false, fly:false, cof:false, invalid:false, bonus:false, goe:0 };
+      return { type:null, name:null, lod:'0', ur:false, dg:false, q:false, attention:false, edge:false, rep:false, spinV:false, fly:false, cof:false, invalid:false, bonus:false, goe:0 };
     }
 
     function deepClone(obj){ return JSON.parse(JSON.stringify(obj)); }
@@ -559,6 +559,7 @@
         p.name = selectedType ? selectedType.value : null;
         p.ur = document.getElementById('flagUR').checked;
         p.dg = document.getElementById('flagDG').checked;
+        p.q = document.getElementById('flagQ').checked;
         p.attention = document.getElementById('flagATT').checked;
         p.edge = document.getElementById('flagE').checked;
         p.rep = document.getElementById('flagREP').checked;
@@ -596,6 +597,7 @@
       if (p.type==='jump'){
         if (p.lod && p.lod!=='0') out += String(p.lod);
         if (p.name) out += p.name;
+        if (p.q) out += 'q';
         if (p.attention) out += '!';
         if (p.edge) out += 'e';
         if (p.ur) out += '<';
@@ -631,14 +633,21 @@
     function computeElementResult(parts){
       const local = deepClone(parts).filter(isRenderablePart);
       let sumBVForScore = 0.0;
-      const bvForGOEList = [];
+      let codeForGOE = null;
+      let maxBVForGOE = 0.0;
       for (let i=0;i<local.length;i++){
         const p = local[i];
         if (p.invalid){ p.bv = 0.0; }
         else if (p.type==='jump'){
-          const lodInt = parseInt(p.lod||'0',10);
-          if (p.dg && lodInt!==0){ p.bv = basevalues[p.name]?.[lodInt-1] ?? 0.0; }
-          else { p.bv = basevalues[p.name]?.[p.lod] ?? 0.0; }
+          let code = `${p.lod}${p.name}`;
+          if (p.attention) code += '!';
+          else if (p.edge) code += 'e';
+          if (p.q) code += 'q';
+          else if (p.ur) code += '<';
+          else if (p.dg) code += '<<';
+          p.code = code;
+          try { p.bv = getBase(code); }
+          catch { p.bv = 0.0; }
         } else if (p.type==='seq'){
           p.bv = basevalues[p.name]?.[p.lod] ?? 0.0;
         } else { // spin
@@ -650,24 +659,34 @@
         p.bvForScoreCalculation = p.bv;
         if (local[0].bonus) p.bvForScoreCalculation *= 1.1;
         if (p.rep) p.bvForScoreCalculation *= 0.7;
-        if (p.ur && p.edge) p.bvForScoreCalculation *= 0.6;
-        else if (p.spinV) p.bvForScoreCalculation *= 0.75;
-        else if (p.ur || p.edge) p.bvForScoreCalculation *= 0.8;
+        if (p.spinV) p.bvForScoreCalculation *= 0.75;
         sumBVForScore += p.bvForScoreCalculation;
 
-        if (p.name!=='ChSq'){
-          if (p.ur && p.edge) p.bvForGOECalculation = p.bv * 0.6;
-          else if (p.spinV) p.bvForGOECalculation = p.bv * 0.75;
-          else if (p.ur || p.edge) p.bvForGOECalculation = p.bv * 0.8;
-          else p.bvForGOECalculation = p.bv;
-        } else { p.bvForGOECalculation = p.bv; }
-        p.bvForGOECalculation = Math.round(p.bvForGOECalculation * 1000 / 10) / 100;
-        bvForGOEList.push(p.bvForGOECalculation);
+        let bvGOE = p.bv;
+        if (p.name !== 'ChSq' && p.spinV) bvGOE = p.bv * 0.75;
+        p.bvForGOECalculation = Math.round(bvGOE * 1000 / 10) / 100;
+        if (p.bvForGOECalculation >= maxBVForGOE){
+          maxBVForGOE = p.bvForGOECalculation;
+          if (p.code) codeForGOE = p.code;
+        }
       }
       const goe = parseInt(local[0].goe||0,10);
       let goeValue = 0.0;
-      if (local[0].name==='ChSq') goeValue = goe * 0.5;
-      else if (goe!==0) goeValue = Math.max(...bvForGOEList,0) * (goe * 0.1);
+      if (local[0].name==='ChSq') {
+        goeValue = goe * 0.5;
+      } else if (goe !== 0) {
+        if (codeForGOE) {
+          try {
+            const base = getBase(codeForGOE);
+            const score = getScore(codeForGOE, goe);
+            goeValue = score - base;
+          } catch {
+            goeValue = maxBVForGOE * (goe * 0.1);
+          }
+        } else {
+          goeValue = maxBVForGOE * (goe * 0.1);
+        }
+      }
       goeValue = Math.round(goeValue * 1000 / 10) / 100;
 
       const totalBV = Math.round(sumBVForScore * 1000 / 10) / 100;
@@ -798,6 +817,7 @@
       newJump.name = document.querySelector('input[name="type"]:checked')?.value || null;
       newJump.ur = document.getElementById('flagUR').checked;
       newJump.dg = document.getElementById('flagDG').checked;
+      newJump.q = document.getElementById('flagQ').checked;
       newJump.attention = document.getElementById('flagATT').checked;
       newJump.edge = document.getElementById('flagE').checked;
       newJump.rep = document.getElementById('flagREP').checked;
@@ -864,12 +884,13 @@
         state.buffer = deepClone(parts);
         const last = state.buffer[state.buffer.length-1];
         // UIを最後のパートでセット
-        if (last.lod) { const r = document.getElementById('rot'+last.lod); if (r) r.checked = true; }
-        if (last.name) { const id = 't'+last.name; const t = document.getElementById(id); if (t) t.checked = true; }
-        document.getElementById('flagUR').checked = !!last.ur;
-        document.getElementById('flagDG').checked = !!last.dg;
-        document.getElementById('flagATT').checked = !!last.attention;
-        document.getElementById('flagE').checked = !!last.edge;
+          if (last.lod) { const r = document.getElementById('rot'+last.lod); if (r) r.checked = true; }
+          if (last.name) { const id = 't'+last.name; const t = document.getElementById(id); if (t) t.checked = true; }
+          document.getElementById('flagUR').checked = !!last.ur;
+          document.getElementById('flagDG').checked = !!last.dg;
+          document.getElementById('flagQ').checked = !!last.q;
+          document.getElementById('flagATT').checked = !!last.attention;
+          document.getElementById('flagE').checked = !!last.edge;
         document.getElementById('flagREP').checked = !!last.rep;
         document.getElementById('flagINV').checked = !!last.invalid;
         document.getElementById('bonus').checked = !!first.bonus;
