@@ -7,6 +7,7 @@ var buffer = [{
   lod: "0",
   ur: false,
   dg: false,
+  q: false,
   edge: false,
   rep: false,
   spinV: false,
@@ -57,6 +58,7 @@ function initApp(){
   $(".setLOD button").click(setLOD);
   $(".setUr").click(setUr);
   $(".setDg").click(setDg);
+  $(".setQ").click(setQ);
   $(".setEdge").click(setEdge);
   $(".setREP").click(setREP);
   $(".setBonus").click(setBonus);
@@ -354,6 +356,7 @@ function setLOD(){
 
 function setUr(){
   buffer[buffer.length - 1].ur = !buffer[buffer.length - 1].ur;
+  buffer[buffer.length - 1].q = false;
   buffer[buffer.length - 1].dg = false;
   setType(this);
   renderBufferedElement();
@@ -363,6 +366,16 @@ function setDg(){
   buffer[buffer.length - 1].dg = !buffer[buffer.length - 1].dg;
   //elementDisplay.append("<<");
   buffer[buffer.length - 1].ur = false;
+  buffer[buffer.length - 1].q = false;
+  setType(this);
+  renderBufferedElement();
+}
+
+function setQ(){
+  const b = buffer[buffer.length - 1];
+  b.q = !b.q;
+  b.ur = false;
+  b.dg = false;
   setType(this);
   renderBufferedElement();
 }
@@ -422,6 +435,7 @@ function addJump(){
     lod: "0",
     ur: false,
     dg: false,
+    q: false,
     edge: false,
     rep: false,
     spinV: false,
@@ -452,6 +466,9 @@ function renderBufferedElement(){
       }
       if (buffer[i].name !== null){
         elementDisplay.append(buffer[i].name);
+      }
+      if (buffer[i].q !== false){
+        elementDisplay.append("q");
       }
       if (buffer[i].edge !== false){
         elementDisplay.append("e");
@@ -525,6 +542,7 @@ function clearEntry() {
     lod: "0",
     ur: false,
     dg: false,
+    q: false,
     edge: false,
     rep: false,
     spinV: false,
@@ -825,6 +843,7 @@ function getElementDisplayText(parts){
     if (p.type === "jump"){
       if (p.lod != null && p.lod != 0){ out += String(p.lod); }
       if (p.name !== null){ out += p.name; }
+      if (p.q){ out += "q"; }
       if (p.edge){ out += "e"; }
       if (p.ur){ out += "<"; }
       if (p.dg){ out += "<<"; }
