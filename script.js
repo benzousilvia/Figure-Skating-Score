@@ -1,5 +1,5 @@
 // ES Modules インポート
-import { initSOV, getScore, getAvailableRotationsFor, basevalues } from './basevalues.js';
+import { initSOV, getBase, getScore, getAvailableRotationsFor } from './basevalues.js';
 
 var buffer = [{
   type: null,
@@ -598,89 +598,92 @@ function addElement(){
 }
 
 function calculateBuffer(){
-  var bufferBV=[0.0];
-  for (var i = 0; i < buffer.length; i++){
-    if (buffer[i].invalid === true){
-      buffer[i].bv = 0.00;
-    }
-    else if (buffer[i].type === "jump"){
-      if (buffer[i].dg === true && parseInt(buffer[i].lod) != "0"){
-        buffer[i].bv = basevalues[buffer[i].name][parseInt(buffer[i].lod) - 1];
-      }
-      else{
-        buffer[i].bv = basevalues[buffer[i].name][buffer[i].lod];
-      }
-    }
-    else if (buffer[i].type === "seq"){
-      buffer[i].bv = basevalues[buffer[i].name][buffer[i].lod];
-    }
-    else{
-      if (buffer[i].cof === true){
-        buffer[i].bv = basevalues[buffer[i].name]["C" + buffer[i].lod];
-      }
-      else if (buffer[i].fly === true){
-        buffer[i].bv = basevalues[buffer[i].name]["F" + buffer[i].lod];
-      }
-      else{
-        buffer[i].bv = basevalues[buffer[i].name][buffer[i].lod];
-      }
-    }
-    //base score calculation
+  const bvForGOEList = [];
+  const codesForGOE = [];
+  for (let i = 0; i < buffer.length; i++){
+    const p = buffer[i];
+    let code = "";
 
-    buffer[i].bvForScoreCalculation = buffer[i].bv;
-    if (buffer[0].bonus === true){
-      buffer[i].bvForScoreCalculation *= 1.1;
-    }
-    if (buffer[i].rep === true){
-      buffer[i].bvForScoreCalculation *= 0.7;
-    }
-    if (buffer[i].ur === true && buffer[i].edge === true){
-      buffer[i].bvForScoreCalculation *= 0.6;
-    }
-    else if (buffer[i].spinV === true){
-      buffer[i].bvForScoreCalculation *= 0.75;
-    }    
-    else if(buffer[i].ur === true || buffer[i].edge === true){
-      buffer[i].bvForScoreCalculation *= 0.8;
+    if (p.invalid === true){
+      p.bv = 0.0;
+    } else if (p.type === "jump"){
+      if (parseInt(p.lod) !== 0){
+        code = `${p.lod}${p.name}`;
+        if (p.dg){
+          code += '<<';
+        } else {
+          if (p.edge && p.ur){
+            code += '!<';
+          } else {
+            if (p.edge){ code += '!'; }
+            if (p.ur){ code += '<'; }
+          }
+          if (p.q){ code += 'q'; }
+        }
+        try {
+          p.bv = getBase(code);
+        } catch (e) {
+          p.bv = 0.0;
+        }
+      } else {
+        p.bv = 0.0;
+      }
+    } else if (p.type === "seq"){
+      code = `${p.name}${p.lod}`;
+      try {
+        p.bv = getBase(code);
+      } catch (e) {
+        p.bv = 0.0;
+      }
+    } else {
+      code = '';
+      if (p.cof){ code += 'C'; }
+      if (p.fly){ code += 'F'; }
+      code += `${p.name}${p.lod}`;
+      try {
+        p.bv = getBase(code);
+      } catch (e) {
+        p.bv = 0.0;
+      }
     }
 
-    //GOE Caculation
+    // base score calculation
+    p.bvForScoreCalculation = p.bv;
+    if (buffer[0].bonus === true){ p.bvForScoreCalculation *= 1.1; }
+    if (p.rep === true){ p.bvForScoreCalculation *= 0.7; }
+    if (p.spinV === true){ p.bvForScoreCalculation *= 0.75; }
 
-    if (buffer[i].name !== "ChSq"){
-      if (buffer[i].ur === true && buffer[i].edge === true){
-        buffer[i].bvForGOECalculation =  buffer[i].bv * 0.6;
-      }
-      else if (buffer[i].spinV === true){
-        buffer[i].bvForGOECalculation =  buffer[i].bv * 0.75;
-      } 
-      else if(buffer[i].ur === true || buffer[i].edge === true){
-        buffer[i].bvForGOECalculation =  buffer[i].bv * 0.8;
-      }
-      else{
-        buffer[i].bvForGOECalculation =  buffer[i].bv;
-      }
+    // GOE Calculation base
+    if (p.name !== "ChSq"){
+      p.bvForGOECalculation = p.bv;
+      if (p.spinV === true){ p.bvForGOECalculation *= 0.75; }
+    } else {
+      p.bvForGOECalculation = p.bv;
+      buffer[0].goeValue = buffer[0].goe * 0.5;
     }
-    else{
-      buffer[i].bvForGOECalculation =  buffer[i].bv;
-      buffer[0].goeValue =  buffer[0].goe * 0.5;
-    }
-    buffer[i].bvForGOECalculation = Math.round(buffer[i].bvForGOECalculation * 1000 / 10) / 100;
-    //console.log((buffer[i].bvForGOECalculation));
-    bufferBV.push(buffer[i].bvForGOECalculation);
-    //alert(buffer[i].bvForGOECalculation);
-
+    p.bvForGOECalculation = Math.round(p.bvForGOECalculation * 1000 / 10) / 100;
+    bvForGOEList.push(p.bvForGOECalculation);
+    codesForGOE.push(code);
   }
-  //console.log(bufferBV);
-  //console.log(Math.max(bufferBV));
+
   if (buffer[0].name !== "ChSq"){
-    if (buffer[0].goe != 0){
-      buffer[0].goeValue = Math.max(...bufferBV) * (buffer[0].goe * 0.1);
+    if (buffer[0].goe != 0 && bvForGOEList.length > 0){
+      const idx = bvForGOEList.indexOf(Math.max(...bvForGOEList));
+      const code = codesForGOE[idx];
+      try {
+        const base = getBase(code);
+        const delta = getScore(code, buffer[0].goe) - base;
+        const coeff = base === 0 ? 0 : bvForGOEList[idx] / base;
+        buffer[0].goeValue = Math.round(delta * coeff * 1000 / 10) / 100;
+      } catch (e) {
+        buffer[0].goeValue = Math.round(Math.max(...bvForGOEList) * (buffer[0].goe * 0.1) * 1000 / 10) / 100;
+      }
+    } else {
+      buffer[0].goeValue = 0.0;
     }
-    buffer[0].goeValue =   Math.round(buffer[0].goeValue * 1000 / 10) / 100;
   }
 }
 
-//console.log("The bv of " + buffer[0].name + buffer[0].lod + " is " + basevalues["F"+buffer[0].name][buffer[0].lod]);
 
 
 function appendToTable(){
@@ -774,26 +777,52 @@ function computeElementResult(parts){
   const local = JSON.parse(JSON.stringify(parts));
   let sumBVForScore = 0.0;
   const bvForGOEList = [];
+  const codesForGOE = [];
+
   for (let i = 0; i < local.length; i++){
     const p = local[i];
+    let code = "";
+
     if (p.invalid === true){
       p.bv = 0.0;
     } else if (p.type === 'jump'){
-      const lodInt = parseInt(p.lod);
-      if (p.dg === true && lodInt !== 0){
-        p.bv = basevalues[p.name][lodInt - 1];
+      if (parseInt(p.lod) !== 0){
+        code = `${p.lod}${p.name}`;
+        if (p.dg){
+          code += '<<';
+        } else {
+          if (p.edge && p.ur){
+            code += '!<';
+          } else {
+            if (p.edge){ code += '!'; }
+            if (p.ur){ code += '<'; }
+          }
+          if (p.q){ code += 'q'; }
+        }
+        try {
+          p.bv = getBase(code);
+        } catch (e) {
+          p.bv = 0.0;
+        }
       } else {
-        p.bv = basevalues[p.name][p.lod];
+        p.bv = 0.0;
       }
     } else if (p.type === 'seq'){
-      p.bv = basevalues[p.name][p.lod];
+      code = `${p.name}${p.lod}`;
+      try {
+        p.bv = getBase(code);
+      } catch (e) {
+        p.bv = 0.0;
+      }
     } else { // spin
-      if (p.cof === true){
-        p.bv = basevalues[p.name]["C" + p.lod];
-      } else if (p.fly === true){
-        p.bv = basevalues[p.name]["F" + p.lod];
-      } else {
-        p.bv = basevalues[p.name][p.lod];
+      code = '';
+      if (p.fly){ code += 'F'; }
+      if (p.cof){ code += 'C'; }
+      code += `${p.name}${p.lod}`;
+      try {
+        p.bv = getBase(code);
+      } catch (e) {
+        p.bv = 0.0;
       }
     }
 
@@ -801,30 +830,30 @@ function computeElementResult(parts){
     p.bvForScoreCalculation = p.bv;
     if (local[0].bonus === true){ p.bvForScoreCalculation *= 1.1; }
     if (p.rep === true){ p.bvForScoreCalculation *= 0.7; }
-    if (p.ur === true && p.edge === true){ p.bvForScoreCalculation *= 0.6; }
-    else if (p.spinV === true){ p.bvForScoreCalculation *= 0.75; }
-    else if (p.ur === true || p.edge === true){ p.bvForScoreCalculation *= 0.8; }
+    if (p.spinV === true){ p.bvForScoreCalculation *= 0.75; }
     sumBVForScore += p.bvForScoreCalculation;
 
     // GOE用係数
-    if (p.name !== 'ChSq'){
-      if (p.ur === true && p.edge === true){ p.bvForGOECalculation = p.bv * 0.6; }
-      else if (p.spinV === true){ p.bvForGOECalculation = p.bv * 0.75; }
-      else if (p.ur === true || p.edge === true){ p.bvForGOECalculation = p.bv * 0.8; }
-      else { p.bvForGOECalculation = p.bv; }
-    } else {
-      p.bvForGOECalculation = p.bv;
-    }
+    p.bvForGOECalculation = p.bv;
+    if (p.spinV === true){ p.bvForGOECalculation *= 0.75; }
     p.bvForGOECalculation = Math.round(p.bvForGOECalculation * 1000 / 10) / 100;
     bvForGOEList.push(p.bvForGOECalculation);
+    codesForGOE.push(code);
   }
 
   let goe = parseInt(local[0].goe || 0);
   let goeValue = 0.0;
   if (local[0].name === 'ChSq'){
     goeValue = goe * 0.5;
-  } else {
-    if (goe !== 0){
+  } else if (goe !== 0 && bvForGOEList.length > 0){
+    const idx = bvForGOEList.indexOf(Math.max(...bvForGOEList));
+    const code = codesForGOE[idx];
+    try {
+      const base = getBase(code);
+      const delta = getScore(code, goe) - base;
+      const coeff = base === 0 ? 0 : bvForGOEList[idx] / base;
+      goeValue = delta * coeff;
+    } catch (e) {
       goeValue = Math.max(...bvForGOEList) * (goe * 0.1);
     }
   }
