@@ -55,8 +55,8 @@
           const bonus = document.getElementById('bonus').checked ? ' x' : '';
           const txt = (rot!=='0'?rot:'') + type + suf + (rep?rep:'') + bonus;
           preview.textContent = txt || '要素';
-          if (rot!=='0') chips.insertAdjacentHTML('beforeend', `<span class="chip"><i class="bi bi-arrow-repeat"></i>${rot}回転</span>`);
-          if (type) chips.insertAdjacentHTML('beforeend', `<span class="chip"><i class="bi bi-circle"></i>${type}</span>`);
+          // if (rot!=='0') chips.insertAdjacentHTML('beforeend', `<span class="chip"><i class="bi bi-arrow-repeat"></i>${rot}回転</span>`);
+          // if (type) chips.insertAdjacentHTML('beforeend', `<span class="chip"><i class="bi bi-circle"></i>${type}</span>`);
           flags.forEach(f=> chips.insertAdjacentHTML('beforeend', `<span class="chip">${f}</span>`));
           if (document.getElementById('spinV').checked) chips.insertAdjacentHTML('beforeend', `<span class="chip">V</span>`);
           if (document.getElementById('bonus').checked) chips.insertAdjacentHTML('beforeend', `<span class="chip">x</span>`);
