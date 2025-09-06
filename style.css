@@ -155,3 +155,14 @@ img, table {
   box-shadow: 0 2px 8px rgba(33,37,41,.08);
   padding: 8px 12px;
 }
+
+/* GOEボタンを複数行に折り返し、均等に配置 */
+.goe-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.goe-buttons .btn {
+  flex: 1 1 14%;
+}
