@@ -513,10 +513,19 @@
     function updateRotationButtons(){
       const type = document.querySelector('input[name="type"]:checked')?.value;
       const rotRadios = [0,1,2,3,4,5].map(n=>document.getElementById('rot'+n));
-      rotRadios.forEach(r=>{ if(r) r.disabled = true; });
-      if (!type){ if(rotRadios[0]) rotRadios[0].disabled=false; return; }
-      const avail = getAvailableRotationsFor(type);
-      rotRadios.forEach((r,idx)=>{ if(!r) return; if(idx===0 || avail.includes(idx)) r.disabled=false; });
+
+      // 一旦すべての回転数ボタンを有効化
+      rotRadios.forEach(r=>{ if(r) r.disabled = false; });
+
+      // ジャンプ種類が選択されている場合のみ制限を適用
+      if (type){
+        const avail = getAvailableRotationsFor(type);
+        rotRadios.forEach((r,idx)=>{
+          if(!r) return;
+          if(idx !== 0 && !avail.includes(idx)) r.disabled = true;
+        });
+      }
+
       // 5回転時はA無効
       const rot = document.querySelector('input[name="rot"]:checked')?.value;
       const aBtn = document.getElementById('tA');
