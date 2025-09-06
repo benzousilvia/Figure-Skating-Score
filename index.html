@@ -154,7 +154,7 @@
                         <input class="btn-check" type="radio" name="rot" id="rot0" value="0"><label class="btn btn-outline-primary" for="rot0">0</label>
                         <input class="btn-check" type="radio" name="rot" id="rot1" value="1"><label class="btn btn-outline-primary" for="rot1">1</label>
                         <input class="btn-check" type="radio" name="rot" id="rot2" value="2"><label class="btn btn-outline-primary" for="rot2">2</label>
-                        <input class="btn-check" type="radio" name="rot" id="rot3" value="3" checked><label class="btn btn-outline-primary" for="rot3">3</label>
+                        <input class="btn-check" type="radio" name="rot" id="rot3" value="3"><label class="btn btn-outline-primary" for="rot3">3</label>
                         <input class="btn-check" type="radio" name="rot" id="rot4" value="4"><label class="btn btn-outline-primary" for="rot4">4</label>
                         <input class="btn-check" type="radio" name="rot" id="rot5" value="5"><label class="btn btn-outline-primary" for="rot5">5</label>
                       </div>
@@ -167,7 +167,7 @@
                     <div class="text-secondary small mb-1">種類</div>
                     <div class="btn-group" role="group" aria-label="types">
                       <input class="btn-check" type="radio" name="type" id="tA" value="A"><label class="btn btn-outline-primary" for="tA">A</label>
-                      <input class="btn-check" type="radio" name="type" id="tT" value="T" checked><label class="btn btn-outline-primary" for="tT">T</label>
+                      <input class="btn-check" type="radio" name="type" id="tT" value="T"><label class="btn btn-outline-primary" for="tT">T</label>
                       <input class="btn-check" type="radio" name="type" id="tS" value="S"><label class="btn btn-outline-primary" for="tS">S</label>
                       <input class="btn-check" type="radio" name="type" id="tLo" value="Lo"><label class="btn btn-outline-primary" for="tLo">Lo</label>
                       <input class="btn-check" type="radio" name="type" id="tF" value="F"><label class="btn btn-outline-primary" for="tF">F</label>
@@ -209,7 +209,7 @@
                       <input type="radio" class="btn-check" name="goe" value="-1" id="goe-1">
                       <label class="btn btn-outline-danger" for="goe-1">-1</label>
                       
-                      <input type="radio" class="btn-check" name="goe" value="0" id="goe0" checked>
+                      <input type="radio" class="btn-check" name="goe" value="0" id="goe0">
                       <label class="btn btn-outline-secondary" for="goe0">0</label>
                       
                       <input type="radio" class="btn-check" name="goe" value="1" id="goe1">
@@ -283,7 +283,7 @@
                     <input type="radio" class="btn-check" name="goe-spin" value="-1" id="goe-spin-1">
                     <label class="btn btn-outline-danger" for="goe-spin-1">-1</label>
                     
-                    <input type="radio" class="btn-check" name="goe-spin" value="0" id="goe-spin0" checked>
+                    <input type="radio" class="btn-check" name="goe-spin" value="0" id="goe-spin0">
                     <label class="btn btn-outline-secondary" for="goe-spin0">0</label>
                     
                     <input type="radio" class="btn-check" name="goe-spin" value="1" id="goe-spin1">
@@ -350,7 +350,7 @@
                     <input type="radio" class="btn-check" name="goe-seq" value="-1" id="goe-seq-1">
                     <label class="btn btn-outline-danger" for="goe-seq-1">-1</label>
                     
-                    <input type="radio" class="btn-check" name="goe-seq" value="0" id="goe-seq0" checked>
+                    <input type="radio" class="btn-check" name="goe-seq" value="0" id="goe-seq0">
                     <label class="btn btn-outline-secondary" for="goe-seq0">0</label>
                     
                     <input type="radio" class="btn-check" name="goe-seq" value="1" id="goe-seq1">
@@ -765,6 +765,12 @@
       document.getElementById('tss').textContent = tss.toFixed(2);
     }
 
+    function resetSelections(){
+      document.querySelectorAll('#pane-jmp input, #pane-spin input, #pane-seq input').forEach(el => el.checked = false);
+      document.getElementById('elemPreview').textContent = '要素';
+      updateRotationButtons();
+    }
+
     function addJumpToBuffer(){
       // 現在のUI選択から新しいジャンプパートを作成
       const newJump = newPart();
@@ -794,21 +800,14 @@
         
         // プレビュー表示を更新
         renderPreview();
-        
-        // UI入力をリセット（ジャンプ種類の選択をクリア）
-        document.querySelectorAll('input[name="type"]').forEach(r => r.checked = false);
-        document.querySelectorAll('input[name="rot"]').forEach(r => r.checked = false);
-        document.getElementById('rot3').checked = true; // デフォルトの3回転に戻す
-        document.querySelectorAll('input[name="flag"]').forEach(r => r.checked = false);
-        updateRotationButtons();
+        resetSelections();
       }
     }
 
-    function clearEntry(){ 
+    function clearEntry(){
       state.buffer = [newPart()];
       state.isComboMode = false;  // 連続ジャンプモード解除
-      // プレビュー欄を空欄に設定
-      document.getElementById('elemPreview').textContent = '要素';
+      resetSelections();
       // GOE値プレビューは削除済み
     }
 
@@ -829,6 +828,7 @@
 
       renderElements();
       clearEntry();
+      resetSelections();
     }
 
     function activateTab(tab){
