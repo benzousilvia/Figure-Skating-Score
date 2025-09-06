@@ -550,15 +550,12 @@
       const tab = currentTab();
       const parts = deepClone(state.buffer);
       if (tab==='jump'){
-        // 選択されたジャンプ種別がなければバッファを変更せず返す
         const selectedType = document.querySelector('input[name="type"]:checked');
-        if (!selectedType) return parts;
-
-        // reflect UI to buffer[buffer.length-1]
+        // 最後の要素に現在の選択内容を反映
         const p = parts[parts.length-1];
         p.type = 'jump';
         p.lod = document.querySelector('input[name="rot"]:checked')?.value || '0';
-        p.name = selectedType.value;
+        p.name = selectedType ? selectedType.value : null;
         p.ur = document.getElementById('flagUR').checked;
         p.dg = document.getElementById('flagDG').checked;
         p.attention = document.getElementById('flagATT').checked;
@@ -592,32 +589,38 @@
       return parts;
     }
 
+    function getPartDisplay(p){
+      let out = '';
+      if (!p) return out;
+      if (p.type==='jump'){
+        if (p.lod && p.lod!=='0') out += String(p.lod);
+        if (p.name) out += p.name;
+        if (p.attention) out += '!';
+        if (p.edge) out += 'e';
+        if (p.ur) out += '<';
+        if (p.dg) out += '<<';
+        if (p.invalid) out += '*';
+        if (p.rep) out += '+REP';
+      } else if (p.type==='spin'){
+        if (p.fly) out += 'F';
+        if (p.cof) out += 'C';
+        if (p.name) out += p.name;
+        if (p.lod && p.lod!=='0') out += String(p.lod);
+        if (p.spinV) out += 'V';
+        if (p.invalid) out += '*';
+      } else if (p.type==='seq'){
+        if (p.name) out += p.name;
+        if (p.lod && p.lod!=='0') out += String(p.lod);
+        if (p.invalid) out += '*';
+      }
+      return out;
+    }
+
     function getElementDisplayText(parts){
       const seq = parts.filter(isRenderablePart);
       let out = '';
       for (let i=0;i<seq.length;i++){
-        const p = seq[i];
-        if (p.type==='jump'){
-          if (p.lod && p.lod!=='0') out += String(p.lod);
-          if (p.name) out += p.name;
-          if (p.attention) out += '!';
-          if (p.edge) out += 'e';
-          if (p.ur) out += '<';
-          if (p.dg) out += '<<';
-          if (p.invalid) out += '*';
-          if (p.rep) out += '+REP';
-        } else if (p.type==='spin'){
-          if (p.fly) out += 'F';
-          if (p.cof) out += 'C';
-          if (p.name) out += p.name;
-          if (p.lod && p.lod!=='0') out += String(p.lod);
-          if (p.spinV) out += 'V';
-          if (p.invalid) out += '*';
-        } else {
-          if (p.name) out += p.name;
-          if (p.lod && p.lod!=='0') out += String(p.lod);
-          if (p.invalid) out += '*';
-        }
+        out += getPartDisplay(seq[i]);
         if (i!==seq.length-1) out += '+';
       }
       if (seq.length>0 && parts[0]?.bonus) out += '  x';
@@ -675,15 +678,18 @@
       // 現在のUI選択を反映したバッファを構築
       const parts = buildBufferedParts();
       const validParts = parts.filter(isRenderablePart);
+      let text = getElementDisplayText(validParts);
 
-      if (validParts.length === 0) {
-        // バッファに有効なジャンプがない場合は空欄
-        document.getElementById('elemPreview').textContent = '要素';
-      } else {
-        // バッファに有効なジャンプがある場合のみ表示
-        let text = getElementDisplayText(validParts);
-        document.getElementById('elemPreview').textContent = text || '要素';
+      const last = parts[parts.length-1];
+      if (state.isComboMode && !isRenderablePart(last)){
+        if (text) text += '+';
+        text += getPartDisplay(last);
       }
+
+      if (!text){
+        text = getPartDisplay(last) || '要素';
+      }
+      document.getElementById('elemPreview').textContent = text;
 
       // GOE値プレビューは削除済み
     }
@@ -797,19 +803,14 @@
       newJump.invalid = document.getElementById('flagINV').checked;
       newJump.bonus = document.getElementById('bonus').checked;
       newJump.goe = parseInt(document.querySelector('input[name="goe"]:checked')?.value)||0;
-      
+
       // 有効なジャンプのみバッファに追加
       if (newJump.name) {
-        // プレビュー欄が空の場合（初回）か既存ジャンプがある場合
-        const validParts = state.buffer.filter(isRenderablePart);
-        if (validParts.length === 0) {
-          // 初回: バッファを新しいジャンプで初期化
-          state.buffer = [newJump];
-        } else {
-          // 追加: 既存バッファに新しいジャンプを追加
-          state.buffer.push(newJump);
-        }
-        
+        // 最後の要素を確定させてプレースホルダーを追加
+        state.buffer[state.buffer.length - 1] = newJump;
+        state.buffer.push(newPart());
+        state.isComboMode = true;
+
         // プレビュー表示を更新
         renderPreview();
         const preview = document.getElementById('elemPreview');
