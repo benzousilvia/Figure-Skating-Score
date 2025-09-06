@@ -672,18 +672,19 @@
     }
 
     function renderPreview(){
-      // プレビュー欄はバッファ内の有効なジャンプのみ表示（UI選択は無視）
-      const validParts = state.buffer.filter(isRenderablePart);
-      
+      // 現在のUI選択を反映したバッファを構築
+      const parts = buildBufferedParts();
+      const validParts = parts.filter(isRenderablePart);
+
       if (validParts.length === 0) {
         // バッファに有効なジャンプがない場合は空欄
         document.getElementById('elemPreview').textContent = '要素';
       } else {
-        // バッファに有効なジャンプがある場合のみ表示（UI選択とは独立）
+        // バッファに有効なジャンプがある場合のみ表示
         let text = getElementDisplayText(validParts);
         document.getElementById('elemPreview').textContent = text || '要素';
       }
-      
+
       // GOE値プレビューは削除済み
     }
 
