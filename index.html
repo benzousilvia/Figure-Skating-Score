@@ -15,8 +15,6 @@
     .navbar-brand{ font-weight: 700; letter-spacing: 0.3px; }
     .page{ padding: 16px 16px 64px; }
     .card{ border-radius: 12px; }
-    .chip{ display:inline-flex; align-items:center; gap:.25rem; background:#f1f3f5; border-radius:999px; padding:.25rem .6rem; }
-    .chip .rm{ cursor:pointer; }
     .goe-scale{ font-size:12px; display:flex; justify-content:space-between; color:#6c757d }
     .sticky-col{ position: sticky; top: 12px; }
     .table thead th{ position: sticky; top:0; background:var(--bs-body-bg); z-index:1; }
@@ -33,7 +31,6 @@
     // 簡易モック: プレビュー更新のみ（実計算は既存script.jsに委ね）
     document.addEventListener('DOMContentLoaded', () => {
       const preview = document.getElementById('elemPreview');
-      const chips = document.getElementById('chips');
       // GOEはラジオボタン形式に変更
       // PCS スライダーと表示バッジ
       const pcsCo = document.getElementById('pcs-co');
@@ -45,7 +42,6 @@
 
       function updatePreview(){
         const active = document.querySelector('.tab-pane.active')?.id;
-        chips.innerHTML = '';
         if (active === 'pane-jmp') {
           const rot = document.querySelector('input[name="rot"]:checked')?.value || '0';
           const type = document.querySelector('input[name="type"]:checked')?.value || '';
@@ -64,12 +60,6 @@
           const lev = levRadio ? document.querySelector(`label[for="${levRadio.id}"]`)?.textContent || '' : '';
           const txt = `${f?'F':''}${c?'C':''}${spType}${v?'V':''}${lev}${inv?'*':''}`;
           preview.textContent = txt || '要素';
-          if (spType) chips.insertAdjacentHTML('beforeend', `<span class="chip">${spType}</span>`);
-          if (f) chips.insertAdjacentHTML('beforeend', `<span class="chip">F</span>`);
-          if (c) chips.insertAdjacentHTML('beforeend', `<span class="chip">C</span>`);
-          if (v) chips.insertAdjacentHTML('beforeend', `<span class="chip">V</span>`);
-          if (lev) chips.insertAdjacentHTML('beforeend', `<span class="chip">Lv${lev}</span>`);
-          if (inv) chips.insertAdjacentHTML('beforeend', `<span class="chip">*</span>`);
           return;
         }
 
@@ -81,9 +71,6 @@
           const inv = document.getElementById('sqINV').checked;
           const txt = `${sqType}${lev}${inv?'*':''}`;
           preview.textContent = txt || '要素';
-          if (sqType) chips.insertAdjacentHTML('beforeend', `<span class="chip">${sqType}</span>`);
-          if (lev) chips.insertAdjacentHTML('beforeend', `<span class="chip">Lv${lev}</span>`);
-          if (inv) chips.insertAdjacentHTML('beforeend', `<span class="chip">*</span>`);
           return;
         }
 
@@ -135,12 +122,11 @@
       <div class="col-12 col-lg-6">
         <div class="card shadow-sm">
           <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-2">
+            <div class="d-flex align-items-center mb-2">
               <div class="section-title">要素コンポーザ</div>
             </div>
-            <div class="mt-3 elem-preview d-flex align-items-center justify-content-between">
+            <div class="mt-3 elem-preview d-flex align-items-center justify-content-start">
               <div id="elemPreview">要素</div>
-              <div id="chips" class="d-flex flex-wrap gap-2"></div>
             </div>
 
             <!-- タブ: ジャンプ/スピン/シークエンス -->
@@ -679,21 +665,10 @@
       if (validParts.length === 0) {
         // バッファに有効なジャンプがない場合は空欄
         document.getElementById('elemPreview').textContent = '要素';
-        document.getElementById('chips').innerHTML = '';
       } else {
         // バッファに有効なジャンプがある場合のみ表示（UI選択とは独立）
         let text = getElementDisplayText(validParts);
         document.getElementById('elemPreview').textContent = text || '要素';
-        
-        const chips = document.getElementById('chips');
-        chips.innerHTML = '';
-        const p0 = validParts[0];
-        if (p0 && p0.type==='jump'){
-          if (p0.lod!=='0') chips.insertAdjacentHTML('beforeend', `<span class="chip"><i class="bi bi-arrow-repeat"></i>${p0.lod}回転</span>`);
-          if (p0.name) chips.insertAdjacentHTML('beforeend', `<span class="chip"><i class="bi bi-circle"></i>${p0.name}</span>`);
-          ['UR','DG','!','e','REP','*'].forEach(f=>{ if ((f==='UR'&&p0.ur)||(f==='DG'&&p0.dg)||(f==='!'&&p0.attention)||(f==='e'&&p0.edge)||(f==='REP'&&p0.rep)||(f==='*'&&p0.invalid)) chips.insertAdjacentHTML('beforeend', `<span class="chip">${f}</span>`); });
-          if (validParts[0]?.bonus) chips.insertAdjacentHTML('beforeend', `<span class="chip">x</span>`);
-        }
       }
       
       // GOE値プレビューは削除済み
@@ -826,11 +801,10 @@
     }
 
     function clearEntry(){ 
-      state.buffer = [newPart()]; 
+      state.buffer = [newPart()];
       state.isComboMode = false;  // 連続ジャンプモード解除
       // プレビュー欄を空欄に設定
       document.getElementById('elemPreview').textContent = '要素';
-      document.getElementById('chips').innerHTML = '';
       // GOE値プレビューは削除済み
     }
 
@@ -892,7 +866,6 @@
         } else {
           // 単独ジャンプ編集時はプレビュー欄を空に
           document.getElementById('elemPreview').textContent = '要素';
-          document.getElementById('chips').innerHTML = '';
         }
       } else if (first.type==='spin'){
         // スピン・シーケンスは連続なし
@@ -948,7 +921,6 @@
       updateRotationButtons();
       // 初期状態はプレビュー欄を空欄に設定
       document.getElementById('elemPreview').textContent = '要素';
-      document.getElementById('chips').innerHTML = '';
       // GOEプレビュー表示は削除済み
       updatePCSBadges();
     })();
