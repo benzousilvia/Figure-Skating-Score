@@ -811,11 +811,9 @@
         state.buffer.push(newPart());
         state.isComboMode = true;
 
-        // プレビュー表示を更新
-        renderPreview();
-        const preview = document.getElementById('elemPreview');
-        preview.textContent += '+';
+        // 選択状態をリセットしプレビューを更新
         resetSelections(false);
+        renderPreview();
       }
     }
 
