@@ -95,15 +95,20 @@ function initApp(){
 
 // 動的回転数制御関数
 function updateRotationButtons(jumpType) {
-  if (!jumpType) return;
-  
+  const rotationButtons = $("#nav-jmp .setLOD button");
+
+  // ジャンプ種類が未選択のときは全ての回転数を選択可能にする
+  if (!jumpType) {
+    rotationButtons.prop("disabled", false);
+    return;
+  }
+
   try {
     const availableRotations = getAvailableRotationsFor(jumpType);
-    const rotationButtons = $("#nav-jmp .setLOD button");
-    
+
     // すべて無効化
     rotationButtons.prop("disabled", true);
-    
+
     // 利用可能な回転数のボタンを有効化
     rotationButtons.each(function(index) {
       const rotation = parseInt($(this).text());
@@ -111,7 +116,7 @@ function updateRotationButtons(jumpType) {
         $(this).prop("disabled", false);
       }
     });
-    
+
     // 0回転は常に有効
     rotationButtons.eq(0).prop("disabled", false);
   } catch (error) {
